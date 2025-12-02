@@ -1,0 +1,69 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">Apply for Job</h1>
+        <p class="text-white-50">{{ job.title }} at {{ job.company_name }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        
+        <!-- Job Summary Card -->
+        <div class="card mb-4" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div class="card-body">
+            <h3 style="color: #2c3e50;">{{ job.title }}</h3>
+            <p style="color: #6c757d;"><strong>{{ job.company_name }}</strong> | {{ job.location }}</p>
+            <span class="badge" style="background-color: #6A696B; color: white;">{{ job.get_job_type_display }}</span>
+          </div>
+        </div>
+
+        <!-- Application Form -->
+        <div class="card" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div class="card-body">
+            <h4 class="mb-4" style="color: #2c3e50;">Application Form</h4>
+            
+            <form method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              
+              <div class="form-group">
+                <label for="cover_letter" style="font-weight: 600; color: #2c3e50;">Cover Letter *</label>
+                <textarea name="cover_letter" id="cover_letter" class="form-control" rows="8" required placeholder="Tell us why you're a great fit for this position..."></textarea>
+                <small class="form-text text-muted">Explain why you're interested in this position and what makes you a good fit.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="resume" style="font-weight: 600; color: #2c3e50;">Upload Resume (Optional)</label>
+                <input type="file" name="resume" id="resume" class="form-control-file" accept=".pdf,.doc,.docx">
+                <small class="form-text text-muted">Accepted formats: PDF, DOC, DOCX (Max 5MB)</small>
+              </div>
+
+              <div class="alert alert-info">
+                <strong>Note:</strong> Your profile information will be automatically included with this application.
+              </div>
+
+              <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary btn-lg btn-block" style="background-color: #6A696B; border-color: #6A696B; font-weight: 600;">
+                  Submit Application
+                </button>
+                <a href="{% url 'job_detail' job.id %}" class="btn btn-outline-secondary btn-lg btn-block mt-2">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">Saved Jobs</h1>
+        <p class="text-white-50">Your bookmarked job opportunities</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row">
+      <div class="col-md-12">
+        {% if saved_jobs %}
+          <ul class="job-listings mb-5">
+            {% for saved in saved_jobs %}
+            <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center" style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease;">
+              <div class="job-listing-logo" style="flex-shrink: 0;">
+                <img src="{% static 'images/job_logo_1.jpg' %}" alt="{{ saved.job.company_name }}" class="img-fluid" style="width: 80px; height: 80px; object-fit: cover; border-radius: 6px;">
+              </div>
+              
+              <div class="job-listing-about d-sm-flex custom-width w-100 justify-content-between mx-4">
+                <div class="job-listing-position mb-3 mb-sm-0" style="flex: 1;">
+                  <h2 style="font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.3rem;">
+                    <a href="{% url 'job_detail' saved.job.id %}" style="color: #2c3e50; text-decoration: none;">{{ saved.job.title }}</a>
+                  </h2>
+                  <strong style="color: #6c757d; font-size: 0.95rem;">{{ saved.job.company_name }}</strong>
+                  <div class="mt-1">
+                    <small style="color: #6c757d;">Saved {{ saved.saved_at|timesince }} ago</small>
+                  </div>
+                </div>
+                
+                <div class="job-listing-location mb-3 mb-sm-0 d-flex align-items-center" style="min-width: 150px;">
+                  <span class="icon-room" style="color: #6A696B; margin-right: 5px;"></span>
+                  <span style="color: #6c757d; font-size: 0.9rem;">{{ saved.job.location }}</span>
+                </div>
+                
+                <div class="job-listing-meta d-flex flex-column align-items-end">
+                  <span class="badge mb-2" style="background-color: #6A696B; color: white; padding: 6px 14px; font-size: 0.85rem; font-weight: 500; border-radius: 4px;">
+                    {{ saved.job.get_job_type_display }}
+                  </span>
+                  <div class="btn-group mt-2">
+                    <a href="{% url 'job_detail' saved.job.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                    <a href="{% url 'save_job' saved.job.id %}" class="btn btn-sm btn-outline-danger">Remove</a>
+                  </div>
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center py-5">
+            <span class="icon-heart" style="font-size: 4rem; color: #6c757d;"></span>
+            <h3 style="color: #6c757d; margin-top: 1rem;">No saved jobs yet</h3>
+            <p>Start saving jobs to view them here</p>
+            <a href="{% url 'browse_jobs' %}" class="btn btn-primary mt-3" style="background-color: #6A696B; border-color: #6A696B;">Browse Jobs</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

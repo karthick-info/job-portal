@@ -1,0 +1,147 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">Edit Job Posting</h1>
+        <p class="text-white-50">Update your job listing details</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        <div class="card" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <div class="card-body p-5">
+            <form method="POST">
+              {% csrf_token %}
+              
+              <div class="row">
+                <div class="col-md-8">
+                  <div class="form-group">
+                    <label for="title" style="font-weight: 600; color: #2c3e50;">Job Title *</label>
+                    <input type="text" name="title" id="title" class="form-control" value="{{ job.title }}" required>
+                  </div>
+                </div>
+                
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <label for="vacancies" style="font-weight: 600; color: #2c3e50;">Number of Vacancies *</label>
+                    <input type="number" name="vacancies" id="vacancies" class="form-control" value="{{ job.vacancies }}" min="1" required>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="description" style="font-weight: 600; color: #2c3e50;">Job Description *</label>
+                <textarea name="description" id="description" class="form-control" rows="6" required>{{ job.description }}</textarea>
+                <small class="form-text text-muted">Provide a detailed description of the role</small>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="location" style="font-weight: 600; color: #2c3e50;">Location *</label>
+                    <input type="text" name="location" id="location" class="form-control" value="{{ job.location }}" required>
+                  </div>
+                </div>
+                
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="job_type" style="font-weight: 600; color: #2c3e50;">Job Type *</label>
+                    <select name="job_type" id="job_type" class="form-control" required>
+                      <option value="full-time" {% if job.job_type == 'full-time' %}selected{% endif %}>Full Time</option>
+                      <option value="part-time" {% if job.job_type == 'part-time' %}selected{% endif %}>Part Time</option>
+                      <option value="contract" {% if job.job_type == 'contract' %}selected{% endif %}>Contract</option>
+                      <option value="internship" {% if job.job_type == 'internship' %}selected{% endif %}>Internship</option>
+                      <option value="remote" {% if job.job_type == 'remote' %}selected{% endif %}>Remote</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <label for="experience_required" style="font-weight: 600; color: #2c3e50;">Experience *</label>
+                    <select name="experience_required" id="experience_required" class="form-control" required>
+                      <option value="0-1" {% if job.experience_required == '0-1' %}selected{% endif %}>0-1 years</option>
+                      <option value="1-3" {% if job.experience_required == '1-3' %}selected{% endif %}>1-3 years</option>
+                      <option value="3-5" {% if job.experience_required == '3-5' %}selected{% endif %}>3-5 years</option>
+                      <option value="5-10" {% if job.experience_required == '5-10' %}selected{% endif %}>5-10 years</option>
+                      <option value="10+" {% if job.experience_required == '10+' %}selected{% endif %}>10+ years</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="salary" style="font-weight: 600; color: #2c3e50;">Salary Range (Optional)</label>
+                    <input type="text" name="salary" id="salary" class="form-control" value="{{ job.salary }}" placeholder="e.g., $50,000 - $70,000">
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="application_deadline" style="font-weight: 600; color: #2c3e50;">Application Deadline (Optional)</label>
+                    <input type="date" name="application_deadline" id="application_deadline" class="form-control" value="{{ job.application_deadline|date:'Y-m-d' }}">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="requirements" style="font-weight: 600; color: #2c3e50;">Requirements</label>
+                <textarea name="requirements" id="requirements" class="form-control" rows="4">{{ job.requirements }}</textarea>
+                <small class="form-text text-muted">List the qualifications and requirements</small>
+              </div>
+
+              <div class="form-group">
+                <label for="skills_required" style="font-weight: 600; color: #2c3e50;">Skills Required</label>
+                <textarea name="skills_required" id="skills_required" class="form-control" rows="3">{{ job.skills_required }}</textarea>
+                <small class="form-text text-muted">List required skills (e.g., Python, Django, React)</small>
+              </div>
+
+              <div class="form-group">
+                <label for="responsibilities" style="font-weight: 600; color: #2c3e50;">Responsibilities</label>
+                <textarea name="responsibilities" id="responsibilities" class="form-control" rows="4">{{ job.responsibilities }}</textarea>
+                <small class="form-text text-muted">Describe the key responsibilities</small>
+              </div>
+
+              <div class="form-group">
+                <label for="benefits" style="font-weight: 600; color: #2c3e50;">Benefits</label>
+                <textarea name="benefits" id="benefits" class="form-control" rows="3">{{ job.benefits }}</textarea>
+                <small class="form-text text-muted">List the benefits and perks</small>
+              </div>
+
+              <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary btn-lg" style="background-color: #6A696B; border-color: #6A696B; min-width: 200px;">
+                  <span class="icon-check"></span> Update Job
+                </button>
+                <a href="{% url 'my_jobs' %}" class="btn btn-outline-secondary btn-lg ml-2">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

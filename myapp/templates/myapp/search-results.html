@@ -1,0 +1,85 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">Search Results</h1>
+        <p class="text-white-50">Found {{ total_jobs }} job{{ total_jobs|pluralize }} matching your search</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    
+    <!-- Search Summary -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="alert alert-info">
+          <strong>Search Criteria:</strong>
+          {% if title %} Keywords: "{{ title }}" {% endif %}
+          {% if region %} | Location: "{{ region }}" {% endif %}
+          {% if type %} | Type: "{{ type }}" {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Listings -->
+    <div class="row">
+      <div class="col-md-12">
+        {% if jobs %}
+          <ul class="job-listings mb-5">
+            {% for job in jobs %}
+            <li class="job-listing d-block d-sm-flex pb-3 pb-sm-0 align-items-center" style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;" onclick="window.location.href='{% url 'job_detail' job.id %}'">
+              <div class="job-listing-logo" style="flex-shrink: 0; margin-right: 1.5rem;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  {{ job.company_name.0|upper }}
+                </div>
+              </div>
+              <div class="job-listing-about d-sm-flex w-100 justify-content-between align-items-center">
+                <div class="job-listing-position mb-3 mb-sm-0" style="flex: 1; min-width: 0;">
+                  <h2 style="font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.3rem;">
+                    <a href="{% url 'job_detail' job.id %}" style="color: #2c3e50; text-decoration: none;">{{ job.title }}</a>
+                  </h2>
+                  <strong style="color: #6c757d; font-size: 0.95rem; display: block;">{{ job.company_name }}</strong>
+                  {% if job.salary %}
+                  <div class="mt-1">
+                    <span style="color: #28a745; font-size: 0.9rem; font-weight: 600;">
+                      💰 {{ job.salary }}
+                    </span>
+                  </div>
+                  {% endif %}
+                </div>
+                <div class="job-listing-location mb-3 mb-sm-0 d-flex align-items-center" style="min-width: 150px; margin: 0 1rem;">
+                  <span class="icon-room" style="color: #6A696B; margin-right: 5px;"></span>
+                  <span style="color: #6c757d; font-size: 0.9rem;">{{ job.location }}</span>
+                </div>
+                <div class="job-listing-meta d-flex flex-column align-items-end" style="min-width: 120px;">
+                  <span class="badge" style="background-color: #6A696B; color: white; padding: 6px 14px; font-size: 0.85rem; font-weight: 500; border-radius: 4px;">{{ job.get_job_type_display }}</span>
+                  {% if job.is_featured %}
+                  <span class="badge mt-2" style="background-color: #ffc107; color: #000; padding: 4px 10px; font-size: 0.75rem; font-weight: 600;">⭐ FEATURED</span>
+                  {% endif %}
+                  <small style="color: #6c757d; margin-top: 8px;">🕒 {{ job.created_at|timesince }} ago</small>
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center py-5">
+            <h3 style="color: #6c757d;">No jobs found matching your criteria</h3>
+            <p>Try adjusting your search filters</p>
+            <a href="{% url 'browse_jobs' %}" class="btn btn-primary mt-3" style="background-color: #6A696B; border-color: #6A696B;">Browse All Jobs</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

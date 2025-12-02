@@ -1,0 +1,67 @@
+{% extends 'myapp/base1.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Frequently Asked Questions (FAQ)</h2>
+
+    <div class="accordion" id="faqAccordion">
+
+        <div class="card">
+            <div class="card-header" id="headingOne">
+                <h2 class="mb-0">
+                    <button class="btn btn-link" type="button" data-toggle="collapse"
+                        data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        1️⃣ How can I apply for a job on JobBoard?
+                    </button>
+                </h2>
+            </div>
+
+            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                data-parent="#faqAccordion">
+                <div class="card-body">
+                    You can apply by creating an account, logging in, and clicking the “Apply Now” button
+                    on the job you’re interested in.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" id="headingTwo">
+                <h2 class="mb-0">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        2️⃣ Is JobBoard free to use?
+                    </button>
+                </h2>
+            </div>
+
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                data-parent="#faqAccordion">
+                <div class="card-body">
+                    Yes! Browsing jobs and applying is completely free. Employers may pay to post listings.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header" id="headingThree">
+                <h2 class="mb-0">
+                    <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
+                        data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        3️⃣ How can I contact JobBoard support?
+                    </button>
+                </h2>
+            </div>
+
+            <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                data-parent="#faqAccordion">
+                <div class="card-body">
+                    You can reach us through the <a href="{% url 'contact' %}">Contact Us</a> page or via
+                    our support email.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

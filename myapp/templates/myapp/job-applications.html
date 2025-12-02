@@ -1,0 +1,117 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">Applications for {{ job.title }}</h1>
+        <p class="text-white-50">{{ applications.count }} application{{ applications.count|pluralize }} received</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <a href="{% url 'my_jobs' %}" class="btn btn-outline-secondary">
+          <span class="icon-arrow-left"></span> Back to My Jobs
+        </a>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        {% if applications %}
+          {% for application in applications %}
+          <div class="card mb-3" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-8">
+                  <h4 style="color: #2c3e50;">{{ application.candidate.first_name }} {{ application.candidate.last_name }}</h4>
+                  <p style="color: #6c757d;">
+                    <span class="icon-envelope"></span> {{ application.candidate.email }}
+                    {% if application.candidate.phone %}
+                      | <span class="icon-phone"></span> {{ application.candidate.phone }}
+                    {% endif %}
+                  </p>
+                  <p><strong>Applied:</strong> {{ application.applied_at|date:"M d, Y H:i" }}</p>
+                  
+                  {% if application.cover_letter %}
+                  <div class="mt-3">
+                    <strong>Cover Letter:</strong>
+                    <p style="color: #6c757d; white-space: pre-wrap;">{{ application.cover_letter }}</p>
+                  </div>
+                  {% endif %}
+                  
+                  {% if application.resume %}
+                  <div class="mt-2">
+                    <a href="{{ application.resume.url }}" class="btn btn-sm btn-primary" target="_blank">
+                      <span class="icon-eye"></span> View CV
+                    </a>
+                  </div>
+                  {% endif %}
+                </div>
+                
+                <div class="col-md-4">
+                  <form method="POST" action="{% url 'update_application_status' application.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label><strong>Status:</strong></label>
+                      <select name="status" class="form-control" onchange="this.form.submit()">
+                        <option value="pending" {% if application.status == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="reviewed" {% if application.status == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                        <option value="shortlisted" {% if application.status == 'shortlisted' %}selected{% endif %}>Shortlisted</option>
+                        <option value="interview" {% if application.status == 'interview' %}selected{% endif %}>Interview</option>
+                        <option value="rejected" {% if application.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                        <option value="hired" {% if application.status == 'hired' %}selected{% endif %}>Hired</option>
+                      </select>
+                    </div>
+                  </form>
+                  
+                  <div class="mt-3">
+                    {% if application.status == 'pending' %}
+                      <span class="badge badge-warning badge-lg">Pending Review</span>
+                    {% elif application.status == 'reviewed' %}
+                      <span class="badge badge-info badge-lg">Reviewed</span>
+                    {% elif application.status == 'shortlisted' %}
+                      <span class="badge badge-primary badge-lg">Shortlisted</span>
+                    {% elif application.status == 'interview' %}
+                      <span class="badge badge-success badge-lg">Interview</span>
+                    {% elif application.status == 'rejected' %}
+                      <span class="badge badge-danger badge-lg">Rejected</span>
+                    {% elif application.status == 'hired' %}
+                      <span class="badge badge-success badge-lg">Hired</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-5">
+            <h3 style="color: #6c757d;">No applications yet</h3>
+            <p>Applications will appear here once candidates apply</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

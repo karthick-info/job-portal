@@ -1,0 +1,128 @@
+/* Fix for job listing collision issue */
+.job-listing {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    /* Visual styles moved from inline */
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+}
+
+.job-listing:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.job-listing-logo {
+    flex-shrink: 0 !important;
+    margin-right: 1.5rem !important;
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.job-listing-about {
+    flex: 1 !important;
+    min-width: 0 !important;
+    /* Critical for text-overflow to work in flex child */
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.job-listing-position {
+    flex: 1 !important;
+    min-width: 0 !important;
+    margin-right: 1rem !important;
+}
+
+.job-listing-position h2 {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 1.2rem !important;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.4 !important;
+}
+
+.job-listing-position h2 a {
+    color: #2c3e50;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.job-listing-position strong {
+    display: block !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: #6c757d !important;
+    font-size: 0.95rem !important;
+    margin-top: 0.35rem !important;
+    padding-top: 0.15rem !important;
+}
+
+.job-listing-location {
+    min-width: 120px !important;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.job-listing-location .icon-room {
+    color: #6A696B;
+    margin-right: 5px;
+}
+
+.job-listing-meta {
+    min-width: 100px !important;
+    flex-shrink: 0 !important;
+    text-align: right !important;
+}
+
+@media (max-width: 768px) {
+    .job-listing {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .job-listing-logo {
+        margin-bottom: 1rem !important;
+    }
+
+    .job-listing-about {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+
+    .job-listing-position {
+        width: 100% !important;
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .job-listing-position h2 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .job-listing-location {
+        margin-bottom: 0.5rem !important;
+    }
+
+    .job-listing-meta {
+        width: 100% !important;
+        text-align: left !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+}

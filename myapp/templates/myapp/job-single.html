@@ -1,0 +1,340 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  /* Job detail page specific styles */
+  .job-info-section {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .job-actions .btn {
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .job-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .job-meta-item {
+    display: flex;
+    align-items: center;
+    margin-right: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .job-meta-item:last-child {
+    margin-right: 0;
+  }
+
+  .similar-job-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  @media (max-width: 768px) {
+    .job-actions .row {
+      gap: 0.5rem;
+    }
+
+    .job-meta-item {
+      margin-right: 0;
+      margin-bottom: 0.75rem;
+    }
+  }
+</style>
+
+<section class="section-hero overlay inner-page bg-image"
+  style="background-image: url('{% static 'images/hero_1.jpg' %}');" id="home-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">{{ job.title }}</h1>
+        <div class="custom-breadcrumbs">
+          <a href="{% url 'home' %}">Home</a> <span class="mx-2 slash">/</span>
+          <a href="{% url 'browse_jobs' %}">Jobs</a> <span class="mx-2 slash">/</span>
+          <span class="text-white"><strong>{{ job.title }}</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="job-info-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8 mb-4 mb-lg-0">
+          <div class="d-flex align-items-center">
+            <div class="mr-4" style="flex-shrink: 0;">
+              <img src="{% static 'images/job_logo_1.jpg' %}" alt="{{ job.company_name }}"
+                style="width: 90px; height: 90px; object-fit: cover; border-radius: 12px; border: 3px solid #f8f9fa;">
+            </div>
+            <div style="flex: 1;">
+              <h1 style="color: #2c3e50; margin-bottom: 1rem; font-size: 2rem; font-weight: 700;">{{ job.title }}</h1>
+              <div class="d-flex flex-wrap align-items-center" style="gap: 1.5rem;">
+                <div class="job-meta-item">
+                  <span class="icon-briefcase mr-2" style="color: #6A696B; font-size: 1.1rem;"></span>
+                  <span style="color: #495057; font-weight: 500;">{{ job.company_name }}</span>
+                </div>
+                <div class="job-meta-item">
+                  <span class="icon-room mr-2" style="color: #6A696B; font-size: 1.1rem;"></span>
+                  <span style="color: #495057; font-weight: 500;">{{ job.location }}</span>
+                </div>
+                <div class="job-meta-item">
+                  <span class="icon-clock-o mr-2" style="color: #6A696B; font-size: 1.1rem;"></span>
+                  <span class="badge badge-secondary"
+                    style="background-color: #6A696B; padding: 6px 12px; font-size: 0.9rem;">{{ job.get_job_type_display
+                    }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="job-actions">
+            <div class="row">
+              <div class="col-6">
+                {% if request.session.email and request.session.role == 'candidate' %}
+                <a href="{% url 'save_job' job.id %}"
+                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;">
+                  {% if has_saved %}
+                  <span class="icon-heart mr-2 text-danger"></span>Saved
+                  {% else %}
+                  <span class="icon-heart-o mr-2 text-danger"></span>Save Job
+                  {% endif %}
+                </a>
+                {% elif request.session.email and request.session.role == 'company' %}
+                {% if is_owner %}
+                <a href="{% url 'edit_job' job.id %}"
+                  class="btn btn-block btn-warning btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;">
+                  <span class="icon-edit mr-2"></span>Edit Job
+                </a>
+                {% else %}
+                <button
+                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;" disabled>
+                  <span class="icon-heart-o mr-2 text-muted"></span>Candidates Only
+                </button>
+                {% endif %}
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'save_job' job.id %}"
+                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;">
+                  <span class="icon-heart-o mr-2 text-danger"></span>Save Job
+                </a>
+                {% endif %}
+              </div>
+              <div class="col-6">
+                {% if request.session.email %}
+                {% if request.session.role == 'candidate' %}
+                {% if has_applied %}
+                <button class="btn btn-block btn-success btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;" disabled>
+                  <span class="icon-check mr-2"></span>Applied
+                </button>
+                {% else %}
+                <a href="{% url 'apply_job' job.id %}"
+                  class="btn btn-block btn-primary btn-lg d-flex align-items-center justify-content-center"
+                  style="background-color: #6A696B; border-color: #6A696B; height: 50px;">
+                  <span class="icon-paper-plane mr-2"></span>Apply Now
+                </a>
+                {% endif %}
+                {% elif request.session.role == 'company' %}
+                {% if is_owner %}
+                <a href="{% url 'job_applications' job.id %}"
+                  class="btn btn-block btn-info btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;">
+                  <span class="icon-users mr-2"></span>View Applications
+                </a>
+                {% else %}
+                <button class="btn btn-block btn-secondary btn-lg d-flex align-items-center justify-content-center"
+                  style="height: 50px;" disabled>
+                  <span class="icon-lock mr-2"></span>Employers Only
+                </button>
+                {% endif %}
+                {% endif %}
+                {% else %}
+                <a href="{% url 'login' %}?next={% url 'apply_job' job.id %}"
+                  class="btn btn-block btn-primary btn-lg d-flex align-items-center justify-content-center"
+                  style="background-color: #6A696B; border-color: #6A696B; height: 50px;">
+                  <span class="icon-paper-plane mr-2"></span>Apply Now
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="mb-5">
+          <h3 class="h5 d-flex align-items-center mb-4 text-primary" style="color: #6A696B !important;">
+            <span class="icon-align-left mr-3"></span>Job Description
+          </h3>
+          <p style="color: #6c757d; white-space: pre-wrap;">{{ job.description }}</p>
+        </div>
+
+        {% if job.responsibilities %}
+        <div class="mb-5">
+          <h3 class="h5 d-flex align-items-center mb-4 text-primary" style="color: #6A696B !important;">
+            <span class="icon-rocket mr-3"></span>Responsibilities
+          </h3>
+          <p style="color: #6c757d; white-space: pre-wrap;">{{ job.responsibilities }}</p>
+        </div>
+        {% endif %}
+
+        {% if job.requirements %}
+        <div class="mb-5">
+          <h3 class="h5 d-flex align-items-center mb-4 text-primary" style="color: #6A696B !important;">
+            <span class="icon-book mr-3"></span>Requirements
+          </h3>
+          <p style="color: #6c757d; white-space: pre-wrap;">{{ job.requirements }}</p>
+        </div>
+        {% endif %}
+
+        {% if job.skills_required %}
+        <div class="mb-5">
+          <h3 class="h5 d-flex align-items-center mb-4 text-primary" style="color: #6A696B !important;">
+            <span class="icon-turned_in mr-3"></span>Skills Required
+          </h3>
+          <p style="color: #6c757d; white-space: pre-wrap;">{{ job.skills_required }}</p>
+        </div>
+        {% endif %}
+
+        {% if job.benefits %}
+        <div class="mb-5">
+          <h3 class="h5 d-flex align-items-center mb-4 text-primary" style="color: #6A696B !important;">
+            <span class="icon-star mr-3"></span>Benefits
+          </h3>
+          <p style="color: #6c757d; white-space: pre-wrap;">{{ job.benefits }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-4">
+        <div class="bg-light p-4 border rounded mb-4" style="box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+          <h3 class="text-primary h5 mb-4"
+            style="color: #6A696B !important; border-bottom: 2px solid #6A696B; padding-bottom: 0.5rem;">
+            <span class="icon-info mr-2"></span>Job Summary
+          </h3>
+          <div class="row">
+            <div class="col-12">
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Published on:</strong>
+                <span class="text-muted">{{ job.created_at|date:"M d, Y" }}</span>
+              </div>
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Vacancy:</strong>
+                <span class="badge badge-primary">{{ job.vacancies }}</span>
+              </div>
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Employment Status:</strong>
+                <span class="badge badge-secondary" style="background-color: #6A696B;">{{ job.get_job_type_display
+                  }}</span>
+              </div>
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Experience:</strong>
+                <span class="text-muted">{{ job.get_experience_required_display }}</span>
+              </div>
+              {% if job.salary %}
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Salary:</strong>
+                <span class="text-success font-weight-bold">{{ job.salary }}</span>
+              </div>
+              {% endif %}
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Location:</strong>
+                <span class="text-muted">{{ job.location }}</span>
+              </div>
+              {% if job.application_deadline %}
+              <div class="mb-3 d-flex justify-content-between align-items-center">
+                <strong class="text-dark">Deadline:</strong>
+                <span class="text-danger">{{ job.application_deadline|date:"M d, Y" }}</span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-light p-3 border rounded">
+          <h3 class="text-primary mt-3 h5 pl-3 mb-3" style="color: #6A696B !important;">Share</h3>
+          <div class="px-3">
+            <a href="#" class="pt-3 pb-3 pr-3 pl-0"><span class="icon-facebook"></span></a>
+            <a href="#" class="pt-3 pb-3 pr-3 pl-0"><span class="icon-twitter"></span></a>
+            <a href="#" class="pt-3 pb-3 pr-3 pl-0"><span class="icon-linkedin"></span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if similar_jobs %}
+    <div class="row mt-5">
+      <div class="col-md-12">
+        <h2 class="mb-4" style="color: #2c3e50;">Similar Jobs</h2>
+        <ul class="job-listings mb-5">
+          {% for similar_job in similar_jobs %}
+          <li class="job-listing d-flex align-items-center similar-job-item"
+            style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;">
+            <a href="{% url 'job_detail' similar_job.id %}"
+              style="text-decoration: none; color: inherit; display: flex; align-items: center; width: 100%;">
+              <div class="job-listing-logo mr-4" style="flex-shrink: 0;">
+                <img src="{% static 'images/job_logo_1.jpg' %}" alt="{{ similar_job.company_name }}" class="img-fluid"
+                  style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 2px solid #f8f9fa;">
+              </div>
+              <div class="job-listing-about d-flex justify-content-between align-items-center w-100">
+                <div class="job-listing-position" style="flex: 1;">
+                  <h3 style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.25rem;">{{
+                    similar_job.title }}</h3>
+                  <div class="d-flex align-items-center" style="gap: 1rem;">
+                    <div class="d-flex align-items-center">
+                      <span class="icon-briefcase mr-1" style="color: #6A696B; font-size: 0.9rem;"></span>
+                      <span style="color: #6c757d; font-size: 0.9rem;">{{ similar_job.company_name }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                      <span class="icon-room mr-1" style="color: #6A696B; font-size: 0.9rem;"></span>
+                      <span style="color: #6c757d; font-size: 0.9rem;">{{ similar_job.location }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="job-listing-meta">
+                  <span class="badge badge-secondary"
+                    style="background-color: #6A696B; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem;">{{
+                    similar_job.get_job_type_display }}</span>
+                </div>
+              </div>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% endblock %}
