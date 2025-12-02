@@ -1,6 +1,20 @@
 # JobBoard - Find Your Dream Job
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/karthick-info/job-portal)
+
 JobBoard is a comprehensive job portal application built with Django. It connects job seekers with employers, allowing companies to post job openings and candidates to apply for them.
+
+## 🚀 **How to Host This Website**
+
+**Click the "Deploy to Render" button above!** 👆
+
+It will automatically:
+1. Connect to your GitHub repository
+2. Set up the Python server
+3. Configure the database
+4. Launch your website for free!
+
+---
 
 ## Features
 
