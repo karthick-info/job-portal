@@ -162,7 +162,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 os.makedirs(os.path.join(BASE_DIR, 'media'), exist_ok=True)
 
 # Gemini API Key
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyAOV93WBCPSGM_u7Atl5eQ2pLZ_fS6ndZo')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'YOUR_NEW_API_KEY_HERE')
 
 # Email Configuration (SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
