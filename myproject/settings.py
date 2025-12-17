@@ -21,12 +21,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dv_@(%u46%rx3l4hu#d!o#xn#tfre##906b78!-2#29^5b3b1('
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dv_@(%u46%rx3l4hu#d!o#xn#tfre##906b78!-2#29^5b3b1(')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com', '.pythonanywhere.com', '.vercel.app', '.now.sh']
+
+# Add external hostname if provided
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# CSRF settings for Vercel
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.onrender.com',
+]
 
 
 # Application definition
@@ -43,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # For serving static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -75,17 +87,23 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+import dj_database_url
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql', 
-        'NAME': 'job-portal-db',
-        'USER': 'root',
-        'PASSWORD': '79Karthick2004.',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
+# Use DATABASE_URL for production (Render/Railway), fallback to SQLite for local
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    # Local development - SQLite (simpler than MySQL for development)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -121,12 +139,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/' # This is already correct.
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Add this line to tell Django where to find your app's static files
 STATICFILES_DIRS = [
     BASE_DIR / 'myapp/static',
 ]
+
+# WhiteNoise for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -141,4 +162,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 os.makedirs(os.path.join(BASE_DIR, 'media'), exist_ok=True)
 
 # Gemini API Key
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY','AIzaSyDhg68m-EXPY3l1OxSUV4JQ8CYJOMVlSB0')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyAOV93WBCPSGM_u7Atl5eQ2pLZ_fS6ndZo')
+
+# Email Configuration (SMTP)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'bkarthick.dev@gmail.com'
+EMAIL_HOST_PASSWORD = 'ojizkuyxvpnkbgsd'
+DEFAULT_FROM_EMAIL = 'bkarthick.dev@gmail.com'
+
+# For development/testing - prints emails to console if SMTP not configured
+if not EMAIL_HOST_USER:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

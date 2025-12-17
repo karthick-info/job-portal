@@ -341,9 +341,9 @@
         </footer>
     </div>
 
-    <!-- Chatbot Widget -->
+    <!-- Engineering Tutor Chatbot Widget -->
     <div id="chat-widget-btn" class="chat-widget-btn">
-        <span style="color: white; font-size: 24px;">🎓</span>
+        <span style="color: white; font-size: 26px;">🎓</span>
     </div>
 
     <div id="chat-window" class="chat-window">
@@ -351,15 +351,32 @@
             <h3>Engineering Tutor</h3>
             <button id="close-chat" class="close-chat">×</button>
         </div>
+        
+        <!-- Quick Action Buttons -->
+        <div class="quick-actions">
+            <button class="quick-action" data-prompt="Write a Python function to reverse a string">Python Help</button>
+            <button class="quick-action" data-prompt="Explain how arrays work in programming">Data Structures</button>
+            <button class="quick-action" data-prompt="Give me a coding challenge for beginners">Practice</button>
+        </div>
+        
         <div id="chat-messages" class="chat-messages">
             <div class="message bot">
-                Hello! I'm your Engineering Tutor. I can help you with your engineering studies, explain concepts, or
-                generate practice questions. How can I help you today?
+                👋 Hi! I'm your <strong>Engineering Tutor</strong>. I can help you:
+                <br><br>
+                • Write & explain code (Python, Java, JS, C++)
+                <br>
+                • Debug your programs
+                <br>
+                • Explain CS concepts & algorithms
+                <br>
+                • Generate practice problems
+                <br><br>
+                What would you like to learn today?
             </div>
-            <div id="typing-indicator" class="typing-indicator">Tutor is typing...</div>
+            <div id="typing-indicator" class="typing-indicator">Thinking</div>
         </div>
         <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Ask an engineering question...">
+            <input type="text" id="chat-input" placeholder="Ask me anything about coding...">
             <button id="send-btn">➤</button>
         </div>
     </div>

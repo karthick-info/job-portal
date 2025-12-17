@@ -34,6 +34,9 @@ urlpatterns = [
     path('otp/', views.otp_page, name='otp_page'),
     path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('resend-otp/', views.resend_otp, name='resend_otp'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/', views.reset_password, name='reset_password'),
+    path('resend-reset-otp/', views.resend_reset_otp, name='resend_reset_otp'),
     path('logout/', views.user_logout, name='logout'),
     path('profile/', views.profile_view, name='profile'),
     

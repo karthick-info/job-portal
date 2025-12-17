@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from .models import UserMaster, Candidate, Company, Job, JobApplication, SavedJob, JobAlert
 from random import randint
 from datetime import datetime, date
@@ -18,6 +21,349 @@ from django.db import transaction
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+
+# ============================================
+# EMAIL TEMPLATES & HELPER FUNCTIONS
+# ============================================
+
+def get_email_base_style():
+    """Common CSS styles for all email templates"""
+    return '''
+        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 10px 0 0; opacity: 0.9; }
+        .content { padding: 30px; background: #ffffff; }
+        .content h2 { color: #2c3e50; margin-top: 0; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #888; font-size: 12px; border-top: 1px solid #eee; }
+        .btn { display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 25px; font-weight: bold; margin: 15px 0; }
+        .btn:hover { opacity: 0.9; }
+        .info-box { background: #e8f4fd; border-left: 4px solid #667eea; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .warning-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .success-box { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .otp-box { background: #f8f9fa; border: 2px dashed #667eea; padding: 20px; text-align: center; margin: 20px 0; border-radius: 10px; }
+        .otp-code { font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 10px; margin: 10px 0; }
+        .job-card { background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 15px 0; border: 1px solid #eee; }
+        .job-title { color: #2c3e50; font-size: 18px; font-weight: bold; margin: 0 0 5px; }
+        .job-company { color: #667eea; font-weight: 500; }
+        .job-meta { color: #888; font-size: 14px; margin-top: 10px; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .badge-primary { background: #667eea; color: white; }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: #333; }
+        .divider { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+        .social-links a { display: inline-block; margin: 0 10px; color: #667eea; text-decoration: none; }
+    '''
+
+
+def send_email(to_email, subject, html_content, plain_content):
+    """Generic email sending function"""
+    try:
+        send_mail(
+            subject=subject,
+            message=plain_content,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[to_email],
+            html_message=html_content,
+            fail_silently=False,
+        )
+        logger.info(f"Email sent successfully to {to_email}: {subject}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send email to {to_email}: {str(e)}")
+        print(f"\n{'='*50}\n📧 EMAIL (Console Fallback)\nTo: {to_email}\nSubject: {subject}\n{'='*50}\n")
+        return False
+
+
+def send_otp_email(email, otp, name="User"):
+    """Send OTP verification email"""
+    subject = '🔐 Your OTP Verification Code - JobBoard'
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎯 JobBoard</h1>
+                <p>Email Verification</p>
+            </div>
+            <div class="content">
+                <h2>Hello {name}! 👋</h2>
+                <p>Thank you for registering with JobBoard. Please use the following OTP to verify your email address:</p>
+                
+                <div class="otp-box">
+                    <p style="margin: 0; color: #666;">Your Verification Code</p>
+                    <p class="otp-code">{otp}</p>
+                </div>
+                
+                <div class="warning-box">
+                    ⚠️ <strong>Important:</strong> This OTP is valid for 10 minutes. Do not share this code with anyone.
+                </div>
+                
+                <p>If you didn't request this verification, please ignore this email.</p>
+            </div>
+            <div class="footer">
+                <p><strong>JobBoard</strong> - Find Your Dream Job</p>
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hello {name}!\n\nYour OTP Verification Code: {otp}\n\nThis OTP is valid for 10 minutes.\n\nJobBoard Team'''
+    
+    return send_email(email, subject, html_message, plain_message)
+
+
+def send_welcome_email(email, name, role):
+    """Send welcome email after successful registration"""
+    subject = '🎉 Welcome to JobBoard!'
+    
+    role_message = "start applying for your dream jobs" if role == "candidate" else "post jobs and find talented candidates"
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🎉 Welcome to JobBoard!</h1>
+                <p>Your account is ready</p>
+            </div>
+            <div class="content">
+                <h2>Hi {name}! 👋</h2>
+                <p>Congratulations! Your account has been successfully verified. You can now {role_message}.</p>
+                
+                <div class="success-box">
+                    ✅ <strong>Account Verified!</strong> You're all set to explore JobBoard.
+                </div>
+                
+                <p style="text-align: center;">
+                    <a href="#" class="btn">🚀 Get Started</a>
+                </p>
+                
+                <hr class="divider">
+                
+                <h3>What's Next?</h3>
+                <ul>
+                    {"<li>Complete your profile</li><li>Upload your resume</li><li>Browse and apply for jobs</li>" if role == "candidate" else "<li>Complete your company profile</li><li>Post your first job</li><li>Review applications</li>"}
+                </ul>
+            </div>
+            <div class="footer">
+                <p>Need help? Contact us at support@jobboard.com</p>
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hi {name}!\n\nWelcome to JobBoard! Your account is now verified.\n\nYou can now {role_message}.\n\nJobBoard Team'''
+    
+    return send_email(email, subject, html_message, plain_message)
+
+
+def send_application_received_email(candidate_email, candidate_name, job_title, company_name):
+    """Send confirmation email to candidate after applying"""
+    subject = f'✅ Application Submitted - {job_title}'
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📝 Application Submitted</h1>
+                <p>We've received your application</p>
+            </div>
+            <div class="content">
+                <h2>Hi {candidate_name}! 👋</h2>
+                <p>Great news! Your application has been successfully submitted.</p>
+                
+                <div class="job-card">
+                    <p class="job-title">{job_title}</p>
+                    <p class="job-company">🏢 {company_name}</p>
+                    <p class="job-meta">
+                        <span class="badge badge-success">Application Submitted</span>
+                    </p>
+                </div>
+                
+                <div class="info-box">
+                    📋 <strong>What happens next?</strong><br>
+                    The employer will review your application and contact you if your profile matches their requirements.
+                </div>
+                
+                <p>You can track your application status in your dashboard.</p>
+                
+                <p style="text-align: center;">
+                    <a href="#" class="btn">View My Applications</a>
+                </p>
+            </div>
+            <div class="footer">
+                <p>Good luck with your application! 🍀</p>
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hi {candidate_name}!\n\nYour application for "{job_title}" at {company_name} has been submitted.\n\nGood luck!\nJobBoard Team'''
+    
+    return send_email(candidate_email, subject, html_message, plain_message)
+
+
+def send_new_application_notification(employer_email, employer_name, candidate_name, job_title, application_id):
+    """Notify employer about new job application"""
+    subject = f'📬 New Application - {job_title}'
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📬 New Application</h1>
+                <p>Someone applied to your job posting</p>
+            </div>
+            <div class="content">
+                <h2>Hi {employer_name}! 👋</h2>
+                <p>You have received a new application for your job posting.</p>
+                
+                <div class="job-card">
+                    <p class="job-title">{job_title}</p>
+                    <p class="job-company">👤 Applicant: <strong>{candidate_name}</strong></p>
+                    <p class="job-meta">
+                        <span class="badge badge-primary">New Application</span>
+                    </p>
+                </div>
+                
+                <p style="text-align: center;">
+                    <a href="#" class="btn">Review Application</a>
+                </p>
+                
+                <div class="info-box">
+                    💡 <strong>Tip:</strong> Respond to applications quickly to attract top talent!
+                </div>
+            </div>
+            <div class="footer">
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hi {employer_name}!\n\nNew application received for "{job_title}" from {candidate_name}.\n\nJobBoard Team'''
+    
+    return send_email(employer_email, subject, html_message, plain_message)
+
+
+def send_application_status_email(candidate_email, candidate_name, job_title, company_name, status):
+    """Notify candidate about application status change"""
+    status_config = {
+        'reviewed': {'emoji': '👀', 'color': '#17a2b8', 'message': 'Your application is being reviewed'},
+        'shortlisted': {'emoji': '⭐', 'color': '#28a745', 'message': 'Congratulations! You have been shortlisted'},
+        'interview': {'emoji': '📅', 'color': '#667eea', 'message': 'You have been selected for an interview'},
+        'rejected': {'emoji': '😔', 'color': '#dc3545', 'message': 'Unfortunately, your application was not selected'},
+        'hired': {'emoji': '🎉', 'color': '#28a745', 'message': 'Congratulations! You have been hired'},
+    }
+    
+    config = status_config.get(status, {'emoji': '📋', 'color': '#6c757d', 'message': 'Your application status has been updated'})
+    
+    subject = f'{config["emoji"]} Application Update - {job_title}'
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header" style="background: {config["color"]};">
+                <h1>{config["emoji"]} Application Update</h1>
+                <p>{status.replace("_", " ").title()}</p>
+            </div>
+            <div class="content">
+                <h2>Hi {candidate_name}! 👋</h2>
+                <p>{config["message"]} for the following position:</p>
+                
+                <div class="job-card">
+                    <p class="job-title">{job_title}</p>
+                    <p class="job-company">🏢 {company_name}</p>
+                    <p class="job-meta">
+                        <span class="badge" style="background: {config["color"]}; color: white;">{status.replace("_", " ").title()}</span>
+                    </p>
+                </div>
+                
+                {"<div class='success-box'>🎊 <strong>Next Steps:</strong> The employer will contact you soon with more details.</div>" if status in ['shortlisted', 'interview', 'hired'] else ""}
+                
+                <p style="text-align: center;">
+                    <a href="#" class="btn">View Details</a>
+                </p>
+            </div>
+            <div class="footer">
+                <p>Keep exploring more opportunities on JobBoard!</p>
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hi {candidate_name}!\n\n{config["message"]} for "{job_title}" at {company_name}.\n\nStatus: {status.title()}\n\nJobBoard Team'''
+    
+    return send_email(candidate_email, subject, html_message, plain_message)
+
+
+def send_password_reset_email(email, otp, name="User"):
+    """Send password reset OTP email"""
+    subject = '🔑 Password Reset Request - JobBoard'
+    
+    html_message = f'''
+    <!DOCTYPE html>
+    <html>
+    <head><style>{get_email_base_style()}</style></head>
+    <body>
+        <div class="container">
+            <div class="header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                <h1>🔑 Password Reset</h1>
+                <p>Reset your account password</p>
+            </div>
+            <div class="content">
+                <h2>Hi {name}! 👋</h2>
+                <p>We received a request to reset your password. Use the OTP below to reset your password:</p>
+                
+                <div class="otp-box">
+                    <p style="margin: 0; color: #666;">Your Reset Code</p>
+                    <p class="otp-code">{otp}</p>
+                </div>
+                
+                <div class="warning-box">
+                    ⚠️ <strong>Important:</strong> This OTP is valid for 10 minutes. If you didn't request this, please ignore this email.
+                </div>
+                
+                <p>For security reasons, never share this code with anyone.</p>
+            </div>
+            <div class="footer">
+                <p>If you didn't request a password reset, your account is safe.</p>
+                <p>© 2025 JobBoard. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    '''
+    
+    plain_message = f'''Hi {name}!\n\nYour Password Reset OTP: {otp}\n\nThis OTP is valid for 10 minutes.\n\nIf you didn't request this, please ignore.\n\nJobBoard Team'''
+    
+    return send_email(email, subject, html_message, plain_message)
 
 
 # ============================================
@@ -211,13 +557,36 @@ def apply_job(request, job_id):
                 return render(request, 'myapp/apply-job.html', context)
             
             with transaction.atomic():
-                JobApplication.objects.create(
+                application = JobApplication.objects.create(
                     job=job,
                     candidate=candidate,
                     cover_letter=cover_letter,
                     resume=resume,
                     status='pending'
                 )
+            
+            # Send email to candidate confirming application
+            send_application_received_email(
+                candidate.email,
+                candidate.first_name,
+                job.title,
+                job.company_name
+            )
+            
+            # Send email to employer about new application
+            if job.company:
+                try:
+                    employer = job.company
+                    employer_user = employer.user_id
+                    send_new_application_notification(
+                        employer_user.email,
+                        employer.firstname,
+                        f"{candidate.first_name} {candidate.last_name}",
+                        job.title,
+                        application.id
+                    )
+                except Exception as e:
+                    logger.error(f"Failed to notify employer: {str(e)}")
             
             messages.success(request, f'Application submitted successfully for {job.title}!')
             return redirect('my_applications')
@@ -686,8 +1055,23 @@ def update_application_status(request, application_id):
         
         # Update status
         with transaction.atomic():
+            old_status = application.status
             application.status = new_status
             application.save()
+        
+        # Send email notification to candidate about status change
+        if old_status != new_status:
+            try:
+                candidate = application.candidate
+                send_application_status_email(
+                    candidate.email,
+                    candidate.first_name,
+                    application.job.title,
+                    application.job.company_name,
+                    new_status
+                )
+            except Exception as e:
+                logger.error(f"Failed to send status update email: {str(e)}")
         
         messages.success(request, f'Application status updated to {new_status.title()}!')
         return redirect('job_applications', job_id=application.job.id)
@@ -877,11 +1261,15 @@ def RegisterUser(request):
                         address=''
                     )
 
-            # Log OTP (in production, send via email)
-            logger.info(f"OTP for {email}: {otp}")
-            print(f"✅ OTP for {email}: {otp}")
+            # Send OTP via email
+            email_sent = send_otp_email(email, otp, fname)
             
-            messages.success(request, f"Registration successful! Please check your email for OTP verification.")
+            if email_sent:
+                messages.success(request, f"Registration successful! OTP sent to {email}")
+            else:
+                messages.warning(request, f"Registration successful! OTP: {otp} (Email service unavailable)")
+                logger.info(f"OTP for {email}: {otp}")
+            
             return render(request, 'myapp/otp.html', {"email": email})
             
         except Exception as e:
@@ -928,6 +1316,20 @@ def verify_otp(request):
                     user.is_verified = True
                     user.otp = 0  # Clear OTP for security
                     user.save()
+                
+                # Send welcome email
+                try:
+                    name = "User"
+                    if user.role == 'candidate':
+                        candidate = Candidate.objects.get(user_id=user)
+                        name = candidate.first_name
+                    elif user.role == 'company':
+                        company = Company.objects.get(user_id=user)
+                        name = company.firstname
+                    
+                    send_welcome_email(email, name, user.role)
+                except Exception as e:
+                    logger.error(f"Failed to send welcome email: {str(e)}")
                 
                 logger.info(f"User {email} verified successfully")
                 msg = "✅ OTP verified successfully! You can now login."
@@ -978,11 +1380,27 @@ def resend_otp(request):
             user.otp = new_otp
             user.save()
         
-        # Log OTP (in production, send via email)
-        logger.info(f"New OTP for {email}: {new_otp}")
-        print(f"✅ New OTP for {email}: {new_otp}")
+        # Get user's name for email
+        name = "User"
+        try:
+            if user.role == 'candidate':
+                candidate = Candidate.objects.get(user_id=user)
+                name = candidate.first_name
+            elif user.role == 'company':
+                company = Company.objects.get(user_id=user)
+                name = company.firstname
+        except:
+            pass
         
-        msg = f"✅ New OTP sent to {email}. Please check your email."
+        # Send OTP via email
+        email_sent = send_otp_email(email, new_otp, name)
+        
+        if email_sent:
+            msg = f"✅ New OTP sent to {email}. Please check your email."
+        else:
+            msg = f"✅ New OTP: {new_otp} (Email service unavailable)"
+            logger.info(f"New OTP for {email}: {new_otp}")
+        
         return render(request, 'myapp/otp.html', {'msg': msg, 'email': email})
         
     except UserMaster.DoesNotExist:
@@ -999,6 +1417,181 @@ def user_logout(request):
     request.session.flush()
     messages.success(request, 'Logged out successfully!')
     return redirect('home')
+
+
+# ============================================
+# FORGOT PASSWORD
+# ============================================
+
+@require_http_methods(["GET", "POST"])
+def forgot_password(request):
+    """Handle forgot password - send OTP to email"""
+    if request.method == "POST":
+        email = request.POST.get('email', '').strip().lower()
+        
+        if not email:
+            return render(request, 'myapp/forgot-password.html', {'msg': '❌ Please enter your email address.'})
+        
+        try:
+            validate_email(email)
+        except ValidationError:
+            return render(request, 'myapp/forgot-password.html', {'msg': '❌ Invalid email format.'})
+        
+        try:
+            user = UserMaster.objects.get(email=email)
+            
+            # Generate OTP for password reset
+            otp = randint(10000, 99999)
+            
+            with transaction.atomic():
+                user.otp = otp
+                user.save()
+            
+            # Get user's name
+            name = "User"
+            try:
+                if user.role == 'candidate':
+                    candidate = Candidate.objects.get(user_id=user)
+                    name = candidate.first_name
+                elif user.role == 'company':
+                    company = Company.objects.get(user_id=user)
+                    name = company.firstname
+            except:
+                pass
+            
+            # Send password reset email
+            email_sent = send_password_reset_email(email, otp, name)
+            
+            if email_sent:
+                messages.success(request, f'Password reset OTP sent to {email}')
+            else:
+                messages.warning(request, f'OTP: {otp} (Email service unavailable)')
+            
+            return render(request, 'myapp/reset-password.html', {'email': email})
+            
+        except UserMaster.DoesNotExist:
+            return render(request, 'myapp/forgot-password.html', {'msg': '❌ No account found with this email.'})
+        except Exception as e:
+            logger.error(f"Error in forgot_password: {str(e)}")
+            return render(request, 'myapp/forgot-password.html', {'msg': '❌ An error occurred. Please try again.'})
+    
+    return render(request, 'myapp/forgot-password.html')
+
+
+@require_http_methods(["GET", "POST"])
+def reset_password(request):
+    """Verify OTP and reset password"""
+    if request.method == "POST":
+        email = request.POST.get('email', '').strip().lower()
+        otp_entered = request.POST.get('otp', '').strip()
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        # Validation
+        if not all([email, otp_entered, new_password, confirm_password]):
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ All fields are required.',
+                'email': email
+            })
+        
+        if not otp_entered.isdigit() or len(otp_entered) != 5:
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ OTP must be a 5-digit number.',
+                'email': email
+            })
+        
+        if new_password != confirm_password:
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ Passwords do not match.',
+                'email': email
+            })
+        
+        if len(new_password) < 6:
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ Password must be at least 6 characters.',
+                'email': email
+            })
+        
+        try:
+            user = UserMaster.objects.get(email=email)
+            
+            if str(user.otp) == str(otp_entered):
+                with transaction.atomic():
+                    user.password = new_password  # TODO: Hash password in production
+                    user.otp = 0  # Clear OTP
+                    user.save()
+                
+                messages.success(request, '✅ Password reset successful! You can now login.')
+                return redirect('login')
+            else:
+                return render(request, 'myapp/reset-password.html', {
+                    'msg': '❌ Invalid OTP. Please try again.',
+                    'email': email
+                })
+                
+        except UserMaster.DoesNotExist:
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ No account found with this email.',
+                'email': email
+            })
+        except Exception as e:
+            logger.error(f"Error in reset_password: {str(e)}")
+            return render(request, 'myapp/reset-password.html', {
+                'msg': '❌ An error occurred. Please try again.',
+                'email': email
+            })
+    
+    email = request.GET.get('email', '')
+    return render(request, 'myapp/reset-password.html', {'email': email})
+
+
+@require_http_methods(["GET"])
+def resend_reset_otp(request):
+    """Resend password reset OTP"""
+    email = request.GET.get('email', '').strip().lower()
+    
+    if not email:
+        return redirect('forgot_password')
+    
+    try:
+        user = UserMaster.objects.get(email=email)
+        
+        # Generate new OTP
+        otp = randint(10000, 99999)
+        
+        with transaction.atomic():
+            user.otp = otp
+            user.save()
+        
+        # Get user's name
+        name = "User"
+        try:
+            if user.role == 'candidate':
+                candidate = Candidate.objects.get(user_id=user)
+                name = candidate.first_name
+            elif user.role == 'company':
+                company = Company.objects.get(user_id=user)
+                name = company.firstname
+        except:
+            pass
+        
+        # Send email
+        email_sent = send_password_reset_email(email, otp, name)
+        
+        if email_sent:
+            messages.success(request, f'New OTP sent to {email}')
+        else:
+            messages.warning(request, f'OTP: {otp} (Email service unavailable)')
+        
+        return render(request, 'myapp/reset-password.html', {'email': email})
+        
+    except UserMaster.DoesNotExist:
+        messages.error(request, 'No account found with this email.')
+        return redirect('forgot_password')
+    except Exception as e:
+        logger.error(f"Error in resend_reset_otp: {str(e)}")
+        messages.error(request, 'An error occurred. Please try again.')
+        return redirect('forgot_password')
 
 
 def profile_view(request):
@@ -1048,50 +1641,75 @@ def profile_view(request):
 @csrf_exempt
 def chat_api(request):
     """
-    API endpoint for the educational chatbot.
+    API endpoint for the educational chatbot - Engineering Tutor.
+    Fast responses with code teaching capabilities.
     """
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            user_message = data.get('message', '')
+            user_message = data.get('message', '').strip()
             
             if not user_message:
                 return JsonResponse({'error': 'No message provided'}, status=400)
 
             # Configure Gemini API
-            # Try to get key from settings, then environment, then hardcoded placeholder
             api_key = getattr(settings, 'GEMINI_API_KEY', None)
             
             if not api_key:
-                 return JsonResponse({'error': 'Server configuration error: API Key missing'}, status=500)
+                return JsonResponse({
+                    'response': '⚠️ **API Key Required**\n\nTo use the Engineering Tutor, please:\n\n1. Get a free API key from [Google AI Studio](https://aistudio.google.com/apikey)\n2. Set it in your environment:\n```bash\nset GEMINI_API_KEY=your_key_here\n```\n3. Restart the server'
+                })
 
             genai.configure(api_key=api_key)
             
-            # System prompt to enforce educational scope
-            system_instruction = """
-            You are an AI tutor for engineering students on a job portal. 
-            Your SOLE purpose is to help students learn and study engineering concepts.
+            # Concise system prompt for faster responses
+            system_prompt = """You are an Engineering Tutor. Help with coding and engineering questions.
+- Write clean code with comments
+- Use ```language for code blocks
+- Be concise"""
             
-            RULES:
-            1. ONLY answer questions related to engineering, science, math, and coursework.
-            2. If a user asks about job applications, resumes, account issues, or general life advice, POLITELY REFUSE and explain that you are only here to help with engineering studies.
-            3. Provide clear, simple explanations for difficult concepts.
-            4. If asked, generate practice questions for engineering topics.
-            5. Do not provide code for entire assignments, but explain the logic or syntax.
+            # Try multiple models in order of preference
+            models_to_try = ['gemini-2.0-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash']
             
-            Example Refusal: "I apologize, but I am designed specifically to help with engineering studies and coursework. For job application support, please check the FAQ or Contact section."
-            """
+            prompt = f"{system_prompt}\n\nQ: {user_message}\n\nA:"
             
-            model = genai.GenerativeModel('gemini-2.0-flash-lite-001')
+            for model_name in models_to_try:
+                try:
+                    model = genai.GenerativeModel(model_name)
+                    response = model.generate_content(
+                        prompt,
+                        generation_config={
+                            'temperature': 0.7,
+                            'max_output_tokens': 800,
+                        }
+                    )
+                    
+                    if response and response.text:
+                        return JsonResponse({'response': response.text})
+                except Exception as model_error:
+                    if '429' not in str(model_error):
+                        raise model_error
+                    continue
             
-            # Construct the full prompt
-            full_prompt = f"{system_instruction}\n\nUser: {user_message}\nAI:"
-            
-            response = model.generate_content(full_prompt)
-            
-            return JsonResponse({'response': response.text})
+            # All models rate limited
+            return JsonResponse({
+                'response': '⏳ **Rate Limit Reached**\n\nToo many requests. Please wait a minute and try again.\n\nTip: The free tier has limited requests per minute.'
+            })
             
         except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
+            error_msg = str(e)
+            logger.error(f"Chat API error: {error_msg}")
+            
+            if 'leaked' in error_msg.lower() or '403' in error_msg:
+                return JsonResponse({
+                    'response': '⚠️ **API Key Issue**\n\nPlease get a new API key from [Google AI Studio](https://aistudio.google.com/apikey)'
+                })
+            
+            if '429' in error_msg or 'quota' in error_msg.lower():
+                return JsonResponse({
+                    'response': '⏳ **Rate Limit**\n\nPlease wait a minute and try again.'
+                })
+            
+            return JsonResponse({'error': f'Error: {error_msg}'}, status=500)
             
     return JsonResponse({'error': 'Invalid request method'}, status=405)

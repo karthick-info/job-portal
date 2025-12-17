@@ -1,5 +1,4 @@
 # Python
-*.pyc
 __pycache__/
 *.py[cod]
 *$py.class
@@ -7,46 +6,31 @@ __pycache__/
 .Python
 env/
 venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+.venv/
 
 # Django
 *.log
+local_settings.py
 db.sqlite3
-db.sqlite3-journal
-/media
-/staticfiles
-*.pot
+*.sqlite3
+media/
 
-# Environment variables
+# Static files (collected)
+staticfiles/
+
+# Environment
 .env
-.env.local
+*.env
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Custom
-test_chatbot_api.py
-list_models.py
+# Test files
+test_*.py

@@ -6,23 +6,131 @@
   /* Job detail page specific styles */
   .job-info-section {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
     padding: 2rem;
     margin-bottom: 2rem;
+    border: 1px solid #f0f0f0;
   }
 
-  .job-actions .btn {
-    font-weight: 500;
-    border-radius: 8px;
+  .job-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .btn-apply-now {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     transition: all 0.3s ease;
-    text-align: center;
-    white-space: nowrap;
+    text-decoration: none;
+    width: 100%;
   }
 
-  .job-actions .btn:hover {
+  .btn-apply-now:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .btn-apply-now:disabled,
+  .btn-apply-now.disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-applied {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  }
+
+  .btn-save-job {
+    background: transparent;
+    border: 2px solid #dee2e6;
+    color: #6c757d;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .btn-save-job:hover {
+    border-color: #dc3545;
+    color: #dc3545;
+    background: #fff5f5;
+    text-decoration: none;
+  }
+
+  .btn-save-job.saved {
+    border-color: #dc3545;
+    color: #dc3545;
+    background: #fff5f5;
+  }
+
+  .btn-edit-job {
+    background: linear-gradient(135deg, #ffc107 0%, #ffca2c 100%);
+    border: none;
+    color: #212529;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .btn-edit-job:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+    color: #212529;
+    text-decoration: none;
+  }
+
+  .btn-view-apps {
+    background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    width: 100%;
+  }
+
+  .btn-view-apps:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.4);
+    color: white;
+    text-decoration: none;
   }
 
   .job-meta-item {
@@ -36,14 +144,41 @@
     margin-right: 0;
   }
 
+  .job-type-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
   .similar-job-item:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12) !important;
   }
 
+  @media (max-width: 992px) {
+    .job-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    
+    .job-actions > a,
+    .job-actions > button {
+      flex: 1;
+      min-width: 140px;
+    }
+  }
+
   @media (max-width: 768px) {
-    .job-actions .row {
-      gap: 0.5rem;
+    .job-actions {
+      flex-direction: column;
+    }
+    
+    .job-actions > a,
+    .job-actions > button {
+      width: 100%;
     }
 
     .job-meta-item {
@@ -102,9 +237,7 @@
                 </div>
                 <div class="job-meta-item">
                   <span class="icon-clock-o mr-2" style="color: #6A696B; font-size: 1.1rem;"></span>
-                  <span class="badge badge-secondary"
-                    style="background-color: #6A696B; padding: 6px 12px; font-size: 0.9rem;">{{ job.get_job_type_display
-                    }}</span>
+                  <span class="job-type-badge">{{ job.get_job_type_display }}</span>
                 </div>
               </div>
             </div>
@@ -112,78 +245,53 @@
         </div>
         <div class="col-lg-4">
           <div class="job-actions">
-            <div class="row">
-              <div class="col-6">
-                {% if request.session.email and request.session.role == 'candidate' %}
-                <a href="{% url 'save_job' job.id %}"
-                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;">
+            {% if request.session.email %}
+              {% if request.session.role == 'candidate' %}
+                <!-- Candidate: Apply Button -->
+                {% if has_applied %}
+                <button class="btn-apply-now btn-applied" disabled>
+                  <span class="icon-check"></span> Application Submitted
+                </button>
+                {% else %}
+                <a href="{% url 'apply_job' job.id %}" class="btn-apply-now">
+                  <span class="icon-paper-plane"></span> Apply Now
+                </a>
+                {% endif %}
+                
+                <!-- Candidate: Save Button -->
+                <a href="{% url 'save_job' job.id %}" class="btn-save-job {% if has_saved %}saved{% endif %}">
                   {% if has_saved %}
-                  <span class="icon-heart mr-2 text-danger"></span>Saved
+                  <span class="icon-heart"></span> Saved to Favorites
                   {% else %}
-                  <span class="icon-heart-o mr-2 text-danger"></span>Save Job
+                  <span class="icon-heart-o"></span> Save Job
                   {% endif %}
                 </a>
-                {% elif request.session.email and request.session.role == 'company' %}
+                
+              {% elif request.session.role == 'company' %}
                 {% if is_owner %}
-                <a href="{% url 'edit_job' job.id %}"
-                  class="btn btn-block btn-warning btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;">
-                  <span class="icon-edit mr-2"></span>Edit Job
+                <!-- Owner: View Applications -->
+                <a href="{% url 'job_applications' job.id %}" class="btn-view-apps">
+                  <span class="icon-users"></span> View Applications
+                </a>
+                <!-- Owner: Edit Job -->
+                <a href="{% url 'edit_job' job.id %}" class="btn-edit-job">
+                  <span class="icon-edit"></span> Edit Job Posting
                 </a>
                 {% else %}
-                <button
-                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;" disabled>
-                  <span class="icon-heart-o mr-2 text-muted"></span>Candidates Only
+                <button class="btn-apply-now" disabled style="opacity: 0.5;">
+                  <span class="icon-lock"></span> Company Account
                 </button>
                 {% endif %}
-                {% else %}
-                <a href="{% url 'login' %}?next={% url 'save_job' job.id %}"
-                  class="btn btn-block btn-outline-secondary btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;">
-                  <span class="icon-heart-o mr-2 text-danger"></span>Save Job
-                </a>
-                {% endif %}
-              </div>
-              <div class="col-6">
-                {% if request.session.email %}
-                {% if request.session.role == 'candidate' %}
-                {% if has_applied %}
-                <button class="btn btn-block btn-success btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;" disabled>
-                  <span class="icon-check mr-2"></span>Applied
-                </button>
-                {% else %}
-                <a href="{% url 'apply_job' job.id %}"
-                  class="btn btn-block btn-primary btn-lg d-flex align-items-center justify-content-center"
-                  style="background-color: #6A696B; border-color: #6A696B; height: 50px;">
-                  <span class="icon-paper-plane mr-2"></span>Apply Now
-                </a>
-                {% endif %}
-                {% elif request.session.role == 'company' %}
-                {% if is_owner %}
-                <a href="{% url 'job_applications' job.id %}"
-                  class="btn btn-block btn-info btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;">
-                  <span class="icon-users mr-2"></span>View Applications
-                </a>
-                {% else %}
-                <button class="btn btn-block btn-secondary btn-lg d-flex align-items-center justify-content-center"
-                  style="height: 50px;" disabled>
-                  <span class="icon-lock mr-2"></span>Employers Only
-                </button>
-                {% endif %}
-                {% endif %}
-                {% else %}
-                <a href="{% url 'login' %}?next={% url 'apply_job' job.id %}"
-                  class="btn btn-block btn-primary btn-lg d-flex align-items-center justify-content-center"
-                  style="background-color: #6A696B; border-color: #6A696B; height: 50px;">
-                  <span class="icon-paper-plane mr-2"></span>Apply Now
-                </a>
-                {% endif %}
-              </div>
-            </div>
+              {% endif %}
+            {% else %}
+              <!-- Not Logged In -->
+              <a href="{% url 'login' %}?next={% url 'apply_job' job.id %}" class="btn-apply-now">
+                <span class="icon-paper-plane"></span> Apply Now
+              </a>
+              <a href="{% url 'login' %}?next={% url 'save_job' job.id %}" class="btn-save-job">
+                <span class="icon-heart-o"></span> Save Job
+              </a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -253,8 +361,7 @@
               </div>
               <div class="mb-3 d-flex justify-content-between align-items-center">
                 <strong class="text-dark">Employment Status:</strong>
-                <span class="badge badge-secondary" style="background-color: #6A696B;">{{ job.get_job_type_display
-                  }}</span>
+                <span class="badge badge-secondary" style="background-color: #6A696B;">{{ job.get_job_type_display }}</span>
               </div>
               <div class="mb-3 d-flex justify-content-between align-items-center">
                 <strong class="text-dark">Experience:</strong>
@@ -297,36 +404,27 @@
         <h2 class="mb-4" style="color: #2c3e50;">Similar Jobs</h2>
         <ul class="job-listings mb-5">
           {% for similar_job in similar_jobs %}
-          <li class="job-listing d-flex align-items-center similar-job-item"
-            style="margin-bottom: 1.5rem; padding: 1.5rem; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: all 0.3s ease; cursor: pointer;">
-            <a href="{% url 'job_detail' similar_job.id %}"
-              style="text-decoration: none; color: inherit; display: flex; align-items: center; width: 100%;">
-              <div class="job-listing-logo mr-4" style="flex-shrink: 0;">
-                <img src="{% static 'images/job_logo_1.jpg' %}" alt="{{ similar_job.company_name }}" class="img-fluid"
-                  style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 2px solid #f8f9fa;">
+          <li class="job-listing similar-job-item" onclick="window.location.href='{% url 'job_detail' similar_job.id %}'">
+            <div class="job-listing-logo">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                {{ similar_job.company_name.0|upper }}
               </div>
-              <div class="job-listing-about d-flex justify-content-between align-items-center w-100">
-                <div class="job-listing-position" style="flex: 1;">
-                  <h3 style="font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.25rem;">{{
-                    similar_job.title }}</h3>
-                  <div class="d-flex align-items-center" style="gap: 1rem;">
-                    <div class="d-flex align-items-center">
-                      <span class="icon-briefcase mr-1" style="color: #6A696B; font-size: 0.9rem;"></span>
-                      <span style="color: #6c757d; font-size: 0.9rem;">{{ similar_job.company_name }}</span>
-                    </div>
-                    <div class="d-flex align-items-center">
-                      <span class="icon-room mr-1" style="color: #6A696B; font-size: 0.9rem;"></span>
-                      <span style="color: #6c757d; font-size: 0.9rem;">{{ similar_job.location }}</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="job-listing-meta">
-                  <span class="badge badge-secondary"
-                    style="background-color: #6A696B; color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem;">{{
-                    similar_job.get_job_type_display }}</span>
-                </div>
+            </div>
+            <div class="job-listing-about">
+              <div class="job-listing-position">
+                <h2>
+                  <a href="{% url 'job_detail' similar_job.id %}">{{ similar_job.title }}</a>
+                </h2>
+                <strong>{{ similar_job.company_name }}</strong>
               </div>
-            </a>
+              <div class="job-listing-location">
+                <span class="icon-room"></span>
+                <span>{{ similar_job.location }}</span>
+              </div>
+              <div class="job-listing-meta">
+                <span class="badge" style="background-color: #6A696B; color: white;">{{ similar_job.get_job_type_display }}</span>
+              </div>
+            </div>
           </li>
           {% endfor %}
         </ul>
