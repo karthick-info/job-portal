@@ -1,0 +1,11 @@
+{% extends 'myapp/base1.html' %}
+
+{% block content %}
+<div class="container mt-5 text-center text-white">
+    <h2>👤 User Profile</h2>
+    <p><strong>First Name:</strong> {{ request.session.firstname }}</p>
+    <p><strong>Last Name:</strong> {{ request.session.lastname }}</p>
+    <p><strong>Email:</strong> {{ request.session.email }}</p>
+    <a href="{% url 'logout' %}" class="btn btn-danger mt-3">Logout</a>
+</div>
+{% endblock %}
