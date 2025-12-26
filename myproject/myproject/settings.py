@@ -165,16 +165,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 os.makedirs(os.path.join(BASE_DIR, 'media'), exist_ok=True)
 
 # Gemini API Key
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyDhg68m-EXPY3l1OxSUV4JQ8CYJOMVlSB0')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'your-gemini-api-key-here')
 
 # Email Configuration (SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'bkarthick.dev@gmail.com'
-EMAIL_HOST_PASSWORD = 'ojizkuyxvpnkbgsd'
-DEFAULT_FROM_EMAIL = 'bkarthick.dev@gmail.com'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
+DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
 EMAIL_TIMEOUT = 20  # Timeout in seconds to prevent Bad Gateway errors
 
 # For development/testing - prints emails to console if SMTP not configured
