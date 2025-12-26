@@ -23,7 +23,7 @@ services:
           name: jobportal-db
           property: connectionString
       - key: GEMINI_API_KEY
-        generateValue: true
+        value: AIzaSyDhg68m-EXPY3l1OxSUV4JQ8CYJOMVlSB0
       - key: EMAIL_HOST_USER
         value: bkarthick.dev@gmail.com
       - key: EMAIL_HOST_PASSWORD
