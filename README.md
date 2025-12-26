@@ -65,6 +65,17 @@ The project is configured for deployment on Render.
 - **Build Command:** `./build.sh`
 - **Start Command:** `gunicorn myproject.wsgi --log-file -`
 
+### Important Note on Database
+If you deploy this as a standard "Web Service" on Render without attaching a persistent database, it will default to SQLite. **SQLite data is lost every time the app restarts or redeploys.**
+To ensure user accounts and jobs are saved:
+1.  Create a **PostgreSQL** database on Render.
+2.  Copy the `Internal Database URL`.
+3.  In your Web Service settings, add an Environment Variable:
+    -   Key: `DATABASE_URL`
+    -   Value: (Paste your connection string)
+
+Alternatively, use the "Blueprint" mode by selecting `render.yaml` which automatically sets up the database.
+
 ## License
 
 MIT License
