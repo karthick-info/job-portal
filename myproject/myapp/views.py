@@ -59,8 +59,10 @@ def get_email_base_style():
 
 
 def send_email(to_email, subject, html_content, plain_content):
-    """Generic email sending function"""
+    """Generic email sending function with improved error handling"""
     try:
+        print(f"📧 Sending email to: {to_email}")
+        
         send_mail(
             subject=subject,
             message=plain_content,
@@ -69,11 +71,34 @@ def send_email(to_email, subject, html_content, plain_content):
             html_message=html_content,
             fail_silently=False,
         )
+        print(f"✅ Email sent successfully to {to_email}")
         logger.info(f"Email sent successfully to {to_email}: {subject}")
         return True
+        
     except Exception as e:
-        logger.error(f"Failed to send email to {to_email}: {str(e)}")
-        print(f"\n{'='*50}\n📧 EMAIL (Console Fallback)\nTo: {to_email}\nSubject: {subject}\n{'='*50}\n")
+        error_msg = str(e)
+        print(f"❌ Failed to send email to {to_email}: {error_msg}")
+        logger.error(f"Failed to send email to {to_email}: {error_msg}")
+        
+        # Extract OTP for console display as fallback
+        otp_match = None
+        if 'OTP' in plain_content:
+            import re
+            otp_pattern = r'(\d{5})'
+            matches = re.findall(otp_pattern, plain_content)
+            if matches:
+                otp_match = matches[0]  # Get the first 5-digit number (likely the OTP)
+        
+        print(f"\n{'='*60}")
+        print(f"📧 EMAIL DELIVERY FAILED")
+        print(f"To: {to_email}")
+        print(f"Subject: {subject}")
+        if otp_match:
+            print(f"🔑 OTP CODE: {otp_match}")
+            print(f"⚠️  Please provide this OTP to the user manually")
+        print(f"Error: {error_msg}")
+        print(f"{'='*60}\n")
+        
         return False
 
 
@@ -1265,9 +1290,9 @@ def RegisterUser(request):
             email_sent = send_otp_email(email, otp, fname)
             
             if email_sent:
-                messages.success(request, f"Registration successful! OTP sent to {email}")
+                messages.success(request, f"✅ Registration successful! OTP sent to {email}. Please check your inbox and spam folder.")
             else:
-                messages.warning(request, f"Registration successful! OTP: {otp} (Email service unavailable)")
+                messages.warning(request, f"⚠️ Registration successful but email delivery failed. Your OTP is: {otp}")
                 logger.info(f"OTP for {email}: {otp}")
             
             return render(request, 'myapp/otp.html', {"email": email})

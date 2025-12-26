@@ -172,11 +172,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'your-app-password')
-DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER', 'your-email@gmail.com')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'bkarthick.dev@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'ojizkuyxvpnkbgsd')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_TIMEOUT = 20  # Timeout in seconds to prevent Bad Gateway errors
 
-# For development/testing - prints emails to console if SMTP not configured
+# For debugging - print email configuration status
+if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD and EMAIL_HOST_USER != 'your-email@gmail.com':
+    print(f"📧 SMTP Email configured for: {EMAIL_HOST_USER}")
+else:
+    print("⚠️ Email credentials not configured - emails may not be sent")
 if not EMAIL_HOST_USER:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
