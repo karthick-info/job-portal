@@ -175,6 +175,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'bkarthick.dev@gmail.com'
 EMAIL_HOST_PASSWORD = 'ojizkuyxvpnkbgsd'
 DEFAULT_FROM_EMAIL = 'bkarthick.dev@gmail.com'
+EMAIL_TIMEOUT = 20  # Timeout in seconds to prevent Bad Gateway errors
 
 # For development/testing - prints emails to console if SMTP not configured
 if not EMAIL_HOST_USER:
