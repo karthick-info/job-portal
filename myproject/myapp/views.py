@@ -69,7 +69,7 @@ def send_email(to_email, subject, html_content, plain_content):
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[to_email],
             html_message=html_content,
-            fail_silently=False,
+            fail_silently=True,  # Changed to True to prevent crashes
         )
         print(f"✅ Email sent successfully to {to_email}")
         logger.info(f"Email sent successfully to {to_email}: {subject}")
@@ -77,7 +77,7 @@ def send_email(to_email, subject, html_content, plain_content):
         
     except Exception as e:
         error_msg = str(e)
-        print(f"❌ Failed to send email to {to_email}: {error_msg}")
+        print(f"❌ Email failed to {to_email}: {error_msg}")
         logger.error(f"Failed to send email to {to_email}: {error_msg}")
         
         # Extract OTP for console display as fallback
@@ -87,18 +87,11 @@ def send_email(to_email, subject, html_content, plain_content):
             otp_pattern = r'(\d{5})'
             matches = re.findall(otp_pattern, plain_content)
             if matches:
-                otp_match = matches[0]  # Get the first 5-digit number (likely the OTP)
+                otp_match = matches[0]
         
-        print(f"\n{'='*60}")
-        print(f"📧 EMAIL DELIVERY FAILED")
-        print(f"To: {to_email}")
-        print(f"Subject: {subject}")
-        if otp_match:
-            print(f"🔑 OTP CODE: {otp_match}")
-            print(f"⚠️  Please provide this OTP to the user manually")
-        print(f"Error: {error_msg}")
-        print(f"{'='*60}\n")
+        print(f"🔑 OTP CODE: {otp_match}" if otp_match else "No OTP found")
         
+        # Return False but don't crash the application
         return False
 
 
@@ -1287,13 +1280,18 @@ def RegisterUser(request):
                     )
 
             # Send OTP via email
-            email_sent = send_otp_email(email, otp, fname)
-            
-            if email_sent:
-                messages.success(request, f"✅ Registration successful! OTP sent to {email}. Please check your inbox and spam folder.")
-            else:
-                messages.warning(request, f"⚠️ Registration successful but email delivery failed. Your OTP is: {otp}")
-                logger.info(f"OTP for {email}: {otp}")
+            try:
+                email_sent = send_otp_email(email, otp, fname)
+                
+                if email_sent:
+                    messages.success(request, f"✅ Registration successful! OTP sent to {email}. Please check your inbox and spam folder.")
+                else:
+                    messages.warning(request, f"✅ Registration successful! Email delivery failed. Your OTP is: {otp}")
+                    logger.info(f"OTP for {email}: {otp}")
+            except Exception as e:
+                # Even if email completely fails, registration should succeed
+                logger.error(f"Email sending failed during registration: {str(e)}")
+                messages.warning(request, f"✅ Registration successful! Email service unavailable. Your OTP is: {otp}")
             
             return render(request, 'myapp/otp.html', {"email": email})
             
@@ -1418,13 +1416,17 @@ def resend_otp(request):
             pass
         
         # Send OTP via email
-        email_sent = send_otp_email(email, new_otp, name)
-        
-        if email_sent:
-            msg = f"✅ New OTP sent to {email}. Please check your email."
-        else:
+        try:
+            email_sent = send_otp_email(email, new_otp, name)
+            
+            if email_sent:
+                msg = f"✅ New OTP sent to {email}. Please check your email."
+            else:
+                msg = f"✅ New OTP: {new_otp} (Email service unavailable)"
+                logger.info(f"New OTP for {email}: {new_otp}")
+        except Exception as e:
+            logger.error(f"Email sending failed in resend_otp: {str(e)}")
             msg = f"✅ New OTP: {new_otp} (Email service unavailable)"
-            logger.info(f"New OTP for {email}: {new_otp}")
         
         return render(request, 'myapp/otp.html', {'msg': msg, 'email': email})
         

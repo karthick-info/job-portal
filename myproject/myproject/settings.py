@@ -175,7 +175,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'bkarthick.dev@gmail.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'ojizkuyxvpnkbgsd')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_TIMEOUT = 20  # Timeout in seconds to prevent Bad Gateway errors
+EMAIL_TIMEOUT = 30  # Increased timeout for production
+EMAIL_USE_LOCALTIME = False
 
 # For debugging - print email configuration status
 if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD and EMAIL_HOST_USER != 'your-email@gmail.com':
