@@ -1,0 +1,400 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobBoard — Find Your Dream Job</title>
+    <meta name="description" content="JobBoard - Find your dream job today">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="{% static 'css/custom-bs.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animate.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/jquery.fancybox.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap-select.min.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/icomoon/style.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/line-icons/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
+    <link rel="stylesheet" href="{% static 'css/job-listing-fix.css' %}">
+
+    <style>
+        /* Username dropdown styles */
+        .username-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .username-dropdown .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            right: 0;
+            top: 100%;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .username-dropdown .dropdown-content a {
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .username-dropdown .dropdown-content a:hover {
+            background-color: #555;
+        }
+
+        .username-dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .username-btn {
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            outline: none;
+        }
+
+        /* Hero section enhancements */
+        .site-blocks-cover {
+            min-height: 550px;
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+        }
+
+        .site-blocks-cover.overlay::before {
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        /* Search form styling */
+        .search-jobs-form .form-control {
+            border-radius: 5px;
+            border: none;
+            height: 50px;
+            padding: 0.75rem 1rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-jobs-form .bootstrap-select .btn {
+            border-radius: 5px;
+            border: none;
+            height: 50px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-jobs-form .btn-success {
+            background-color: #6A696B !important;
+            border-color: #6A696B !important;
+            font-weight: 600;
+            height: 50px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(106, 105, 107, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .search-jobs-form .btn-success:hover {
+            background-color: #5a595b !important;
+            border-color: #5a595b !important;
+            box-shadow: 0 4px 12px rgba(106, 105, 107, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Trending keywords buttons */
+        .btn-outline-light {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline-light:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        /* Job listing hover effect */
+        .job-listing:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Browse button hover */
+        .btn-primary:hover {
+            background-color: #5a595b !important;
+            border-color: #5a595b !important;
+            box-shadow: 0 4px 12px rgba(106, 105, 107, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Section styling */
+        .section-title {
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #6A696B;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body id="top">
+    <div id="overlayer"></div>
+    <div class="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
+    <div class="site-wrap">
+        <!-- Mobile Menu -->
+        <div class="site-mobile-menu site-navbar-target">
+            <div class="site-mobile-menu-header">
+                <div class="site-mobile-menu-close mt-3">
+                    <span class="icon-close2 js-menu-toggle"></span>
+                </div>
+            </div>
+            <div class="site-mobile-menu-body"></div>
+        </div>
+
+        <!-- Header -->
+        <header class="site-navbar mt-3">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+
+                    <!-- Logo -->
+                    <div class="site-logo col-6">
+                        <a href="{% url 'home' %}">JobBoard</a>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="mx-auto site-navigation">
+                        <ul class="site-menu js-clone-nav d-none d-xl-block ml-0 pl-0">
+                            <li><a href="{% url 'home' %}" class="nav-link">Home</a></li>
+                            <li><a href="{% url 'about' %}">About</a></li>
+                            <li><a href="{% url 'browse_jobs' %}">Browse Jobs</a></li>
+
+                            <!-- Candidate Menu -->
+                            {% if request.session.role == 'candidate' %}
+                            <li class="has-children">
+                                <a href="#">My Jobs</a>
+                                <ul class="dropdown">
+                                    <li><a href="{% url 'my_applications' %}">My Applications</a></li>
+                                    <li><a href="{% url 'saved_jobs' %}">Saved Jobs</a></li>
+                                </ul>
+                            </li>
+                            {% endif %}
+
+                            <!-- Employer Menu -->
+                            {% if request.session.role == 'company' %}
+                            <li class="has-children">
+                                <a href="#">Employer</a>
+                                <ul class="dropdown">
+                                    <li><a href="{% url 'post_job' %}">Post a Job</a></li>
+                                    <li><a href="{% url 'my_jobs' %}">My Posted Jobs</a></li>
+                                </ul>
+                            </li>
+                            {% endif %}
+
+                            <li><a href="{% url 'contact' %}">Contact</a></li>
+
+                            <!-- User session dropdown or login/register -->
+                            {% if request.session.firstname %}
+                            <li class="username-dropdown">
+                                <button class="username-btn">
+                                    👤 {{ request.session.firstname }} {{ request.session.lastname }} ▼
+                                </button>
+                                <div class="dropdown-content">
+                                    <a href="{% url 'profile' %}">Profile</a>
+                                    {% if request.session.role == 'candidate' %}
+                                    <a href="{% url 'my_applications' %}">My Applications</a>
+                                    <a href="{% url 'saved_jobs' %}">Saved Jobs</a>
+                                    {% elif request.session.role == 'company' %}
+                                    <a href="{% url 'my_jobs' %}">My Jobs</a>
+                                    <a href="{% url 'post_job' %}">Post Job</a>
+                                    {% endif %}
+                                    <a href="{% url 'logout' %}">Logout</a>
+                                </div>
+                            </li>
+                            {% else %}
+                            <li><a href="{% url 'login' %}">Login</a></li>
+                            <li><a href="{% url 'register' %}">Register</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+
+                    <!-- Right-side buttons -->
+                    <div class="right-cta-menu text-right d-flex align-items-center col-6">
+                        <div class="ml-auto">
+                            <a href="{% url 'post_job' %}"
+                                class="btn btn-outline-white border-width-2 d-none d-lg-inline-block">
+                                <span class="mr-2 icon-add"></span>Post a Job
+                            </a>
+
+                            {% if not request.session.firstname %}
+                            <a href="{% url 'login' %}" class="btn btn-primary border-width-2 d-none d-lg-inline-block">
+                                <span class="mr-2 icon-lock_outline"></span>Log In
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <a href="#" class="site-menu-toggle js-menu-toggle d-inline-block d-xl-none mt-lg-2 ml-3">
+                            <span class="icon-menu h3 m-0 p-0 mt-2"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <a href="#top" class="smoothscroll scroll-top">
+                <span class="icon-keyboard_arrow_up"></span>
+            </a>
+
+            <div class="container">
+                <div class="row mb-5">
+                    <div class="col-6 col-md-3 mb-4 mb-md-0">
+                        <h3>Search Trending</h3>
+                        <ul class="list-unstyled">
+                            <li><a href="#">Web Design</a></li>
+                            <li><a href="#">Graphic Design</a></li>
+                            <li><a href="#">Web Developers</a></li>
+                            <li><a href="#">Python</a></li>
+                            <li><a href="#">HTML5</a></li>
+                            <li><a href="#">CSS3</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-6 col-md-3 mb-4 mb-md-0">
+                        <h3>Company</h3>
+                        <ul class="list-unstyled">
+                            <li><a href="{% url 'about' %}">About Us</a></li>
+                            <li><a href="#">Career</a></li>
+                            <li><a href="#">Resources</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-6 col-md-3 mb-4 mb-md-0">
+                        <h3>Support</h3>
+                        <ul class="list-unstyled">
+                            <li><a href="#">Support</a></li>
+                            <li><a href="#">Privacy</a></li>
+                            <li><a href="#">Terms of Service</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="col-6 col-md-3 mb-4 mb-md-0">
+                        <h3>Contact Us</h3>
+                        <div class="footer-social">
+                            <a href="#"><span class="icon-facebook"></span></a>
+                            <a href="#"><span class="icon-twitter"></span></a>
+                            <a href="#"><span class="icon-instagram"></span></a>
+                            <a href="#"><span class="icon-linkedin"></span></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <div class="col-12">
+                        <p class="copyright">
+                            <small>
+                                &copy;
+                                <script>document.write(new Date().getFullYear());</script>
+                                All rights reserved | Made with
+                                <i class="icon-heart text-danger"></i> by
+                                <a href="https://colorlib.com" target="_blank">Karthick</a>
+                            </small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Engineering Tutor Chatbot Widget -->
+    <div id="chat-widget-btn" class="chat-widget-btn">
+        <span style="color: white; font-size: 26px;">🎓</span>
+    </div>
+
+    <div id="chat-window" class="chat-window">
+        <div class="chat-header">
+            <h3>Engineering Tutor</h3>
+            <button id="close-chat" class="close-chat">×</button>
+        </div>
+        
+        <!-- Quick Action Buttons -->
+        <div class="quick-actions">
+            <button class="quick-action" data-prompt="Write a Python function to reverse a string">Python Help</button>
+            <button class="quick-action" data-prompt="Explain how arrays work in programming">Data Structures</button>
+            <button class="quick-action" data-prompt="Give me a coding challenge for beginners">Practice</button>
+        </div>
+        
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot">
+                👋 Hi! I'm your <strong>Engineering Tutor</strong>. I can help you:
+                <br><br>
+                • Write & explain code (Python, Java, JS, C++)
+                <br>
+                • Debug your programs
+                <br>
+                • Explain CS concepts & algorithms
+                <br>
+                • Generate practice problems
+                <br><br>
+                What would you like to learn today?
+            </div>
+            <div id="typing-indicator" class="typing-indicator">Thinking</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Ask me anything about coding...">
+            <button id="send-btn">➤</button>
+        </div>
+    </div>
+
+    {% block scripts %}
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/isotope.pkgd.min.js' %}"></script>
+    <script src="{% static 'js/stickyfill.min.js' %}"></script>
+    <script src="{% static 'js/jquery.fancybox.min.js' %}"></script>
+    <script src="{% static 'js/jquery.easing.1.3.js' %}"></script>
+    <script src="{% static 'js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'js/jquery.animateNumber.min.js' %}"></script>
+    <script src="{% static 'js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'js/custom.js' %}"></script>
+    <script src="{% static 'js/chatbot.js' %}"></script>
+    {% endblock %}
+</body>
+
+</html>

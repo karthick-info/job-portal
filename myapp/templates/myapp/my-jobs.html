@@ -1,0 +1,106 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+<section class="section-hero overlay inner-page bg-image" style="background-image: url({% static 'images/hero_1.jpg' %}); padding: 4rem 0;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="text-white font-weight-bold">My Posted Jobs</h1>
+        <p class="text-white-50">Manage your job postings</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <a href="{% url 'post_job' %}" class="btn btn-primary" style="background-color: #6A696B; border-color: #6A696B;">
+          <span class="icon-add"></span> Post New Job
+        </a>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        {% if jobs %}
+          <div class="table-responsive">
+            <table class="table table-hover" style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+              <thead style="background-color: #6A696B; color: white;">
+                <tr>
+                  <th>Job Title</th>
+                  <th>Location</th>
+                  <th>Type</th>
+                  <th>Applications</th>
+                  <th>Views</th>
+                  <th>Status</th>
+                  <th>Posted</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for job in jobs %}
+                <tr>
+                  <td>
+                    <strong style="color: #2c3e50;">{{ job.title }}</strong>
+                  </td>
+                  <td>{{ job.location }}</td>
+                  <td>{{ job.get_job_type_display }}</td>
+                  <td>
+                    <a href="{% url 'job_applications' job.id %}" class="badge badge-info">
+                      {{ job.get_applications_count }} Application{{ job.get_applications_count|pluralize }}
+                    </a>
+                  </td>
+                  <td>{{ job.views_count }}</td>
+                  <td>
+                    {% if job.is_active %}
+                      <span class="badge badge-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ job.created_at|date:"M d, Y" }}</td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-outline-primary" title="View">
+                        <span class="icon-eye"></span>
+                      </a>
+                      <a href="{% url 'edit_job' job.id %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                        <span class="icon-pencil"></span>
+                      </a>
+                      <a href="{% url 'delete_job' job.id %}" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this job?')">
+                        <span class="icon-trash"></span>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center py-5">
+            <h3 style="color: #6c757d;">No jobs posted yet</h3>
+            <p>Start posting jobs to attract candidates</p>
+            <a href="{% url 'post_job' %}" class="btn btn-primary mt-3" style="background-color: #6A696B; border-color: #6A696B;">Post Your First Job</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

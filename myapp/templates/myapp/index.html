@@ -1,0 +1,140 @@
+{% extends 'myapp/base1.html' %}
+{% load static %}
+{% block content %}
+
+
+
+<!-- ================================
+     HERO SECTION
+================================ -->
+<div class="site-blocks-cover overlay" style="background-image: url({% static 'images/hero_1.jpg' %});" data-aos="fade"
+  data-stellar-background-ratio="0.5">
+  <div class="container">
+    <div class="row align-items-center justify-content-center text-center" style="min-height: 500px;">
+
+      <div class="col-md-11 col-lg-10">
+        <h1 class="mb-3 text-white font-weight-bold" style="font-size: 2.8rem; line-height: 1.3;">The Easiest Way To Get
+          Your Dream Job</h1>
+        <p class="mb-4" style="color: rgba(255,255,255,0.85); font-size: 1rem;">Lorem ipsum dolor sit amet, consectetur
+          adipisicing elit. Cupiditate est, consequuntur perferendis.</p>
+
+        <!-- ✅ Job Search Form -->
+        <form method="GET" action="{% url 'search_jobs' %}" class="search-jobs-form mt-4">
+          <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+              <div class="row g-2">
+                <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                  <input type="text" name="title" class="form-control form-control-lg"
+                    placeholder="Job title, Company..." style="font-size: 0.95rem;">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                  <select name="region" class="selectpicker" data-style="btn-white btn-lg" data-width="100%"
+                    data-live-search="true" title="Select Region">
+                    <option value="">Anywhere</option>
+                    <option value="San Francisco">San Francisco</option>
+                    <option value="New York">New York</option>
+                    <option value="Toronto">Toronto</option>
+                    <option value="Ontario">Ontario</option>
+                    <option value="Kansas">Kansas</option>
+                    <option value="Mountain View">Mountain View</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3 mb-2 mb-md-0">
+                  <select name="type" class="selectpicker" data-style="btn-white btn-lg" data-width="100%"
+                    data-live-search="true" title="Select Job Type">
+                    <option value="">Select Job Type</option>
+                    <option value="Full Time">Full Time</option>
+                    <option value="Part Time">Part Time</option>
+                    <option value="Internship">Internship</option>
+                    <option value="Freelance">Freelance</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                  <button type="submit" class="btn btn-success btn-lg btn-block text-white"
+                    style="font-size: 0.95rem; background-color: #6A696B; border-color: #6A696B;">
+                    <span class="icon-search"></span> Search Job
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <div class="text-white mt-4">
+          <span style="font-size: 13px; opacity: 0.85; margin-right: 8px;">Trending Keywords:</span>
+          <a href="#" class="btn btn-sm btn-outline-light mx-1 my-1"
+            style="border-radius: 3px; padding: 5px 14px; font-size: 12px; border-width: 1px;">UI Designer</a>
+          <a href="#" class="btn btn-sm btn-outline-light mx-1 my-1"
+            style="border-radius: 3px; padding: 5px 14px; font-size: 12px; border-width: 1px;">Python</a>
+          <a href="#" class="btn btn-sm btn-outline-light mx-1 my-1"
+            style="border-radius: 3px; padding: 5px 14px; font-size: 12px; border-width: 1px;">Developer</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================
+     TRENDING JOBS SECTION
+================================ -->
+<section class="site-section" style="padding: 4rem 0;">
+  <div class="container">
+    <div class="row mb-5 justify-content-center">
+      <div class="col-md-8 text-center">
+        <h2 class="section-title mb-3" style="font-size: 2.2rem; font-weight: 700; color: #2c3e50;">Trending Jobs</h2>
+        <p class="lead" style="color: #6c757d; font-size: 1.1rem;">Browse some of the most in-demand jobs available
+          right now.</p>
+      </div>
+    </div>
+
+    <ul class="job-listings mb-5">
+      {% for job in jobs %}
+      <li class="job-listing" onclick="window.location.href='{% url 'job_detail' job.id %}'">
+        <div class="job-listing-logo">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            {{ job.company_name.0|upper }}
+          </div>
+        </div>
+        <div class="job-listing-about">
+          <div class="job-listing-position">
+            <h2>
+              <a href="{% url 'job_detail' job.id %}">{{ job.title }}</a>
+            </h2>
+            <strong>{{ job.company_name }}</strong>
+            {% if job.salary %}
+            <div class="mt-1">
+              <span>💰 {{ job.salary }}</span>
+            </div>
+            {% endif %}
+          </div>
+          <div class="job-listing-location">
+            <span class="icon-room"></span>
+            <span>{{ job.location }}</span>
+          </div>
+          <div class="job-listing-meta">
+            <span class="badge" style="background-color: #6A696B; color: white;">{{ job.get_job_type_display }}</span>
+            {% if job.is_featured %}
+            <span class="badge" style="background-color: #ffc107; color: #000;">⭐ FEATURED</span>
+            {% endif %}
+            <small>🕒 {{ job.created_at|timesince }} ago</small>
+          </div>
+        </div>
+      </li>
+      {% empty %}
+      <li class="text-center" style="padding: 3rem; color: #6c757d; list-style: none;">
+        <p style="font-size: 1.1rem; margin: 0;">No trending jobs available at the moment.</p>
+      </li>
+      {% endfor %}
+    </ul>
+
+    <div class="row pagination-wrap">
+      <div class="col-md-12 text-center">
+        <a href="{% url 'browse_jobs' %}" class="btn btn-primary px-5 py-3"
+          style="background-color: #6A696B; border-color: #6A696B; font-weight: 600; font-size: 1rem; border-radius: 6px; transition: all 0.3s ease;">Browse
+          All Jobs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
