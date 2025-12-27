@@ -1,250 +1,279 @@
 from django.core.management.base import BaseCommand
-from myapp.models import Job
+from django.db import transaction
+from myapp.models import UserMaster, Company, Job
+from datetime import date, timedelta
 
 class Command(BaseCommand):
-    help = 'Adds sample jobs to the database'
+    help = 'Add sample job listings to the database'
 
     def handle(self, *args, **options):
-        # Sample jobs data with INR currency
-        sample_jobs = [
-            {
-                'title': 'Senior Full Stack Developer',
-                'company_name': 'TCS (Tata Consultancy Services)',
-                'description': 'We are looking for an experienced Full Stack Developer to join our team and work on cutting-edge enterprise applications.',
-                'location': 'Mumbai, Maharashtra',
-                'job_type': 'full-time',
-                'experience_required': '5-10',
-                'salary': '₹12,00,000 - ₹18,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science\n• 5+ years of experience in full stack development\n• Strong problem-solving skills\n• Excellent communication skills',
-                'skills_required': 'React, Node.js, MongoDB, Express, JavaScript, TypeScript, AWS',
-                'responsibilities': '• Develop and maintain full stack applications\n• Write clean, maintainable code\n• Participate in code reviews\n• Mentor junior developers',
-                'benefits': 'Health insurance, Provident Fund, Performance bonus, Work from home options, Professional development',
-                'vacancies': 3,
-                'is_featured': True,
-            },
-            {
-                'title': 'Python Django Developer',
-                'company_name': 'Infosys Limited',
-                'description': 'Join our team as a Python Django developer working on innovative web applications for global clients.',
-                'location': 'Bangalore, Karnataka',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹8,00,000 - ₹12,00,000 per annum',
-                'requirements': '• Strong Python and Django skills\n• Experience with REST APIs\n• Knowledge of PostgreSQL/MySQL\n• Understanding of Agile methodologies',
-                'skills_required': 'Python, Django, REST APIs, PostgreSQL, Docker, Git, Linux',
-                'responsibilities': '• Develop backend services using Django\n• Design and implement REST APIs\n• Optimize database queries\n• Collaborate with frontend team',
-                'benefits': 'Competitive salary, Health insurance, Flexible hours, Learning opportunities, Annual bonus',
-                'vacancies': 2,
-                'is_featured': True,
-            },
-            {
-                'title': 'Frontend React Developer',
-                'company_name': 'Wipro Technologies',
-                'description': 'Build amazing user interfaces with React and modern web technologies for enterprise clients.',
-                'location': 'Pune, Maharashtra',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹7,00,000 - ₹11,00,000 per annum',
-                'requirements': '• React expertise with 3+ years experience\n• Strong JavaScript/TypeScript skills\n• Experience with state management (Redux/Context API)\n• Responsive design skills',
-                'skills_required': 'React, JavaScript, TypeScript, HTML5, CSS3, Redux, Webpack, Git',
-                'responsibilities': '• Build responsive web applications\n• Optimize performance\n• Collaborate with designers and backend team\n• Write unit tests',
-                'benefits': 'Competitive compensation, Medical insurance, Flexible work hours, Free meals, Gym membership',
-                'vacancies': 2,
-                'is_featured': True,
-            },
-            {
-                'title': 'Data Scientist',
-                'company_name': 'Flipkart',
-                'description': 'Analyze data and provide insights to drive business decisions across product teams.',
-                'location': 'Bangalore, Karnataka',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹10,00,000 - ₹16,00,000 per annum',
-                'requirements': '• Masters degree in Statistics, Mathematics, or Computer Science\n• 3+ years of experience in data science\n• Strong Python and SQL skills\n• Experience with ML frameworks',
-                'skills_required': 'Python, SQL, Machine Learning, TensorFlow, Pandas, NumPy, Tableau, Statistics',
-                'responsibilities': '• Analyze business data and create reports\n• Build predictive models\n• Present insights to stakeholders\n• Collaborate with product teams',
-                'benefits': 'Health insurance, Stock options, Performance bonus, Learning budget, Flexible hours',
-                'vacancies': 2,
-            },
-            {
-                'title': 'UI/UX Designer',
-                'company_name': 'Paytm',
-                'description': 'Create stunning user experiences for millions of users across our payment platform.',
-                'location': 'Noida, Uttar Pradesh',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹6,00,000 - ₹10,00,000 per annum',
-                'requirements': '• Bachelor degree in Design or related field\n• 3+ years of UI/UX design experience\n• Strong portfolio demonstrating design skills\n• Experience with design tools',
-                'skills_required': 'Figma, Adobe XD, Sketch, Prototyping, User Research, Wireframing, Design Systems',
-                'responsibilities': '• Design user interfaces for mobile and web\n• Conduct user research\n• Create prototypes and wireframes\n• Collaborate with developers',
-                'benefits': 'Competitive salary, Health insurance, Work from home, Professional development, Team outings',
-                'vacancies': 1,
-            },
-            {
-                'title': 'DevOps Engineer',
-                'company_name': 'Amazon India',
-                'description': 'Manage and optimize our cloud infrastructure to support millions of transactions daily.',
-                'location': 'Hyderabad, Telangana',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹9,00,000 - ₹15,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science\n• 3+ years of DevOps experience\n• Strong knowledge of AWS/Azure\n• Experience with CI/CD pipelines',
-                'skills_required': 'AWS, Docker, Kubernetes, Jenkins, Terraform, Python, Linux, Git',
-                'responsibilities': '• Manage cloud infrastructure\n• Implement CI/CD pipelines\n• Monitor system performance\n• Automate deployment processes',
-                'benefits': 'Competitive compensation, Stock options, Health benefits, Learning opportunities, Relocation assistance',
-                'vacancies': 2,
-            },
-            {
-                'title': 'Mobile App Developer (Android)',
-                'company_name': 'Swiggy',
-                'description': 'Build and maintain our Android application used by millions of food lovers across India.',
-                'location': 'Bangalore, Karnataka',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹8,00,000 - ₹13,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science\n• 3+ years of Android development\n• Strong knowledge of Kotlin/Java\n• Experience with Android SDK',
-                'skills_required': 'Kotlin, Java, Android SDK, MVVM, Retrofit, Room, Git, REST APIs',
-                'responsibilities': '• Develop Android application features\n• Optimize app performance\n• Fix bugs and improve stability\n• Collaborate with design team',
-                'benefits': 'Health insurance, Free food credits, Flexible hours, Learning budget, Performance bonus',
-                'vacancies': 2,
-            },
-            {
-                'title': 'Java Backend Developer',
-                'company_name': 'HCL Technologies',
-                'description': 'Develop robust backend services using Java and Spring Boot for enterprise clients.',
-                'location': 'Chennai, Tamil Nadu',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹7,00,000 - ₹11,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science\n• 3+ years of Java development\n• Strong knowledge of Spring Framework\n• Experience with microservices',
-                'skills_required': 'Java, Spring Boot, Microservices, MySQL, REST APIs, Maven, Git, JUnit',
-                'responsibilities': '• Develop backend services\n• Design REST APIs\n• Write unit tests\n• Optimize database queries',
-                'benefits': 'Competitive salary, Medical insurance, Provident Fund, Annual bonus, Career growth',
-                'vacancies': 3,
-            },
-            {
-                'title': 'Digital Marketing Manager',
-                'company_name': 'Zomato',
-                'description': 'Lead our digital marketing efforts to grow our brand and user base across India.',
-                'location': 'Gurugram, Haryana',
-                'job_type': 'full-time',
-                'experience_required': '5-10',
-                'salary': '₹10,00,000 - ₹16,00,000 per annum',
-                'requirements': '• MBA in Marketing or related field\n• 5+ years of digital marketing experience\n• Strong analytical skills\n• Experience with marketing tools',
-                'skills_required': 'SEO, SEM, Social Media Marketing, Google Analytics, Content Marketing, Email Marketing',
-                'responsibilities': '• Develop marketing strategies\n• Manage digital campaigns\n• Analyze marketing metrics\n• Lead marketing team',
-                'benefits': 'Competitive package, Health insurance, Performance bonus, Food credits, Team events',
-                'vacancies': 1,
-            },
-            {
-                'title': 'Business Analyst',
-                'company_name': 'Accenture',
-                'description': 'Bridge the gap between business needs and technical solutions for global clients.',
-                'location': 'Mumbai, Maharashtra',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹8,00,000 - ₹12,00,000 per annum',
-                'requirements': '• Bachelor degree in Business, IT, or related field\n• 3+ years of BA experience\n• Strong analytical skills\n• Excellent communication skills',
-                'skills_required': 'Business Analysis, Requirements Gathering, SQL, Excel, JIRA, Agile, Documentation',
-                'responsibilities': '• Gather and document requirements\n• Create business process models\n• Coordinate with stakeholders\n• Support UAT activities',
-                'benefits': 'Health insurance, Provident Fund, Performance bonus, Learning opportunities, Global exposure',
-                'vacancies': 2,
-            },
-            {
-                'title': 'QA Automation Engineer',
-                'company_name': 'Tech Mahindra',
-                'description': 'Design and implement automated testing frameworks to ensure software quality.',
-                'location': 'Pune, Maharashtra',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹6,00,000 - ₹10,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science\n• 3+ years of QA automation experience\n• Strong knowledge of testing frameworks\n• Programming skills in Java/Python',
-                'skills_required': 'Selenium, Java, Python, TestNG, Cucumber, Jenkins, Git, API Testing',
-                'responsibilities': '• Design automation frameworks\n• Write automated test scripts\n• Execute test cases\n• Report and track bugs',
-                'benefits': 'Competitive salary, Medical insurance, Flexible hours, Training programs, Annual bonus',
-                'vacancies': 2,
-            },
-            {
-                'title': 'Product Manager',
-                'company_name': 'PhonePe',
-                'description': 'Drive product strategy and execution for our digital payment platform.',
-                'location': 'Bangalore, Karnataka',
-                'job_type': 'full-time',
-                'experience_required': '5-10',
-                'salary': '₹15,00,000 - ₹25,00,000 per annum',
-                'requirements': '• MBA or equivalent degree\n• 5+ years of product management experience\n• Strong analytical and strategic thinking\n• Experience in fintech preferred',
-                'skills_required': 'Product Strategy, User Research, Data Analysis, Agile, Roadmap Planning, Stakeholder Management',
-                'responsibilities': '• Define product vision and strategy\n• Prioritize features and roadmap\n• Work with engineering and design teams\n• Analyze product metrics',
-                'benefits': 'Competitive package, Stock options, Health insurance, Flexible work, Learning budget',
-                'vacancies': 1,
-                'is_featured': True,
-            },
-            {
-                'title': 'Cybersecurity Analyst',
-                'company_name': 'HDFC Bank',
-                'description': 'Protect our banking systems and customer data from cyber threats.',
-                'location': 'Mumbai, Maharashtra',
-                'job_type': 'full-time',
-                'experience_required': '3-5',
-                'salary': '₹9,00,000 - ₹14,00,000 per annum',
-                'requirements': '• Bachelor degree in Computer Science or Cybersecurity\n• 3+ years of security experience\n• Security certifications (CEH, CISSP) preferred\n• Knowledge of security tools',
-                'skills_required': 'Network Security, Penetration Testing, SIEM, Firewall, IDS/IPS, Security Auditing',
-                'responsibilities': '• Monitor security systems\n• Conduct security assessments\n• Respond to security incidents\n• Implement security measures',
-                'benefits': 'Excellent compensation, Health insurance, Provident Fund, Job security, Career growth',
-                'vacancies': 2,
-            },
-            {
-                'title': 'Content Writer',
-                'company_name': 'Byju\'s',
-                'description': 'Create engaging educational content for our learning platform.',
-                'location': 'Bangalore, Karnataka',
-                'job_type': 'full-time',
-                'experience_required': '1-3',
-                'salary': '₹4,00,000 - ₹6,00,000 per annum',
-                'requirements': '• Bachelor degree in English, Journalism, or related field\n• 1-3 years of content writing experience\n• Excellent writing and editing skills\n• Understanding of SEO',
-                'skills_required': 'Content Writing, SEO, Research, Editing, Proofreading, WordPress, Google Docs',
-                'responsibilities': '• Write educational content\n• Edit and proofread content\n• Research topics\n• Optimize content for SEO',
-                'benefits': 'Competitive salary, Health insurance, Learning opportunities, Flexible hours, Work from home',
-                'vacancies': 3,
-            },
-            {
-                'title': 'HR Manager',
-                'company_name': 'Cognizant',
-                'description': 'Lead HR operations and talent management for our growing team.',
-                'location': 'Chennai, Tamil Nadu',
-                'job_type': 'full-time',
-                'experience_required': '5-10',
-                'salary': '₹8,00,000 - ₹13,00,000 per annum',
-                'requirements': '• MBA in HR or related field\n• 5+ years of HR management experience\n• Strong interpersonal skills\n• Knowledge of labor laws',
-                'skills_required': 'Recruitment, Employee Relations, Performance Management, HR Policies, Training, HRIS',
-                'responsibilities': '• Manage recruitment process\n• Handle employee relations\n• Implement HR policies\n• Conduct training programs',
-                'benefits': 'Competitive package, Health insurance, Provident Fund, Performance bonus, Career development',
-                'vacancies': 1,
-            },
-        ]
-
-        # Create jobs
-        self.stdout.write("Adding sample jobs to database...")
-        created_count = 0
-        existing_count = 0
-
-        for job_data in sample_jobs:
-            job, created = Job.objects.get_or_create(
-                title=job_data['title'],
-                company_name=job_data['company_name'],
-                defaults=job_data
+        self.stdout.write('🚀 Adding sample job listings...')
+        
+        try:
+            with transaction.atomic():
+                # Create sample companies first
+                companies_data = [
+                    {
+                        'email': 'hr@techcorp.com',
+                        'company_name': 'TechCorp Solutions',
+                        'firstname': 'Sarah',
+                        'lastname': 'Johnson',
+                        'city': 'San Francisco',
+                        'state': 'California'
+                    },
+                    {
+                        'email': 'careers@innovatetech.com', 
+                        'company_name': 'InnovateTech',
+                        'firstname': 'Michael',
+                        'lastname': 'Chen',
+                        'city': 'New York',
+                        'state': 'New York'
+                    },
+                    {
+                        'email': 'jobs@digitalstudio.com',
+                        'company_name': 'Digital Studio',
+                        'firstname': 'Emily',
+                        'lastname': 'Davis',
+                        'city': 'Austin',
+                        'state': 'Texas'
+                    },
+                    {
+                        'email': 'hiring@cloudtech.com',
+                        'company_name': 'CloudTech Systems',
+                        'firstname': 'David',
+                        'lastname': 'Wilson',
+                        'city': 'Seattle',
+                        'state': 'Washington'
+                    },
+                    {
+                        'email': 'talent@startuplab.com',
+                        'company_name': 'StartupLab',
+                        'firstname': 'Lisa',
+                        'lastname': 'Brown',
+                        'city': 'Boston',
+                        'state': 'Massachusetts'
+                    }
+                ]
+                
+                companies = []
+                for comp_data in companies_data:
+                    # Create user account for company
+                    user = UserMaster.objects.create(
+                        email=comp_data['email'],
+                        password='company123',  # Simple password for demo
+                        otp=0,
+                        role='company',
+                        is_active=True,
+                        is_verified=True
+                    )
+                    
+                    # Create company profile
+                    company = Company.objects.create(
+                        user_id=user,
+                        firstname=comp_data['firstname'],
+                        lastname=comp_data['lastname'],
+                        company_name=comp_data['company_name'],
+                        city=comp_data['city'],
+                        state=comp_data['state'],
+                        contact='(555) 123-4567',
+                        address=f"123 Business St, {comp_data['city']}, {comp_data['state']}"
+                    )
+                    companies.append(company)
+                
+                # Create sample jobs
+                jobs_data = [
+                    {
+                        'title': 'Senior Software Engineer',
+                        'description': 'We are looking for an experienced software engineer to join our dynamic team. You will be responsible for developing scalable web applications and working with cutting-edge technologies.',
+                        'location': 'San Francisco, CA',
+                        'job_type': 'full-time',
+                        'experience_required': '3-5',
+                        'salary': '$120,000 - $150,000',
+                        'skills_required': 'Python, Django, React, PostgreSQL, AWS',
+                        'requirements': 'Bachelor\'s degree in Computer Science or related field. 3+ years of experience in web development. Strong problem-solving skills.',
+                        'responsibilities': 'Design and develop web applications, collaborate with cross-functional teams, write clean and maintainable code, participate in code reviews.',
+                        'benefits': 'Health insurance, 401k matching, flexible work hours, remote work options',
+                        'vacancies': 2,
+                        'is_featured': True,
+                        'company_index': 0
+                    },
+                    {
+                        'title': 'Frontend Developer',
+                        'description': 'Join our creative team as a Frontend Developer and help build amazing user experiences. We work with modern frameworks and prioritize clean, responsive design.',
+                        'location': 'New York, NY',
+                        'job_type': 'full-time',
+                        'experience_required': '1-3',
+                        'salary': '$80,000 - $100,000',
+                        'skills_required': 'JavaScript, React, HTML5, CSS3, TypeScript',
+                        'requirements': 'Strong knowledge of modern JavaScript frameworks. Experience with responsive design. Portfolio of previous work required.',
+                        'responsibilities': 'Develop user interfaces, optimize applications for speed and scalability, collaborate with designers and backend developers.',
+                        'benefits': 'Health insurance, dental coverage, professional development budget, flexible PTO',
+                        'vacancies': 1,
+                        'is_featured': True,
+                        'company_index': 1
+                    },
+                    {
+                        'title': 'UX/UI Designer',
+                        'description': 'We\'re seeking a talented UX/UI Designer to create intuitive and visually appealing digital experiences. You\'ll work closely with our product team to design user-centered solutions.',
+                        'location': 'Austin, TX',
+                        'job_type': 'full-time',
+                        'experience_required': '1-3',
+                        'salary': '$70,000 - $90,000',
+                        'skills_required': 'Figma, Adobe Creative Suite, Sketch, Prototyping, User Research',
+                        'requirements': 'Bachelor\'s degree in Design or related field. Strong portfolio demonstrating UX/UI design skills. Experience with design systems.',
+                        'responsibilities': 'Create wireframes and prototypes, conduct user research, design user interfaces, collaborate with development teams.',
+                        'benefits': 'Creative workspace, design conference budget, health insurance, stock options',
+                        'vacancies': 1,
+                        'is_featured': False,
+                        'company_index': 2
+                    },
+                    {
+                        'title': 'DevOps Engineer',
+                        'description': 'Looking for a DevOps Engineer to help streamline our development and deployment processes. You\'ll work with cloud infrastructure and automation tools.',
+                        'location': 'Seattle, WA',
+                        'job_type': 'full-time',
+                        'experience_required': '3-5',
+                        'salary': '$110,000 - $140,000',
+                        'skills_required': 'AWS, Docker, Kubernetes, Jenkins, Terraform, Linux',
+                        'requirements': '3+ years of DevOps experience. Strong knowledge of cloud platforms. Experience with CI/CD pipelines.',
+                        'responsibilities': 'Manage cloud infrastructure, automate deployment processes, monitor system performance, ensure security best practices.',
+                        'benefits': 'Comprehensive health coverage, retirement plan, learning stipend, remote work flexibility',
+                        'vacancies': 1,
+                        'is_featured': True,
+                        'company_index': 3
+                    },
+                    {
+                        'title': 'Data Scientist',
+                        'description': 'Join our data team to extract insights from complex datasets and build predictive models. You\'ll work on exciting projects that drive business decisions.',
+                        'location': 'Boston, MA',
+                        'job_type': 'full-time',
+                        'experience_required': '1-3',
+                        'salary': '$90,000 - $120,000',
+                        'skills_required': 'Python, R, SQL, Machine Learning, Statistics, Pandas, Scikit-learn',
+                        'requirements': 'Master\'s degree in Data Science, Statistics, or related field. Experience with machine learning algorithms. Strong analytical skills.',
+                        'responsibilities': 'Analyze large datasets, build predictive models, create data visualizations, present findings to stakeholders.',
+                        'benefits': 'Health insurance, professional development, conference attendance, flexible schedule',
+                        'vacancies': 2,
+                        'is_featured': False,
+                        'company_index': 4
+                    },
+                    {
+                        'title': 'Product Manager',
+                        'description': 'We\'re looking for a Product Manager to lead product strategy and work with cross-functional teams to deliver exceptional products to our customers.',
+                        'location': 'San Francisco, CA',
+                        'job_type': 'full-time',
+                        'experience_required': '3-5',
+                        'salary': '$130,000 - $160,000',
+                        'skills_required': 'Product Strategy, Agile, Analytics, User Research, Roadmap Planning',
+                        'requirements': '3+ years of product management experience. Strong analytical and communication skills. Experience with agile methodologies.',
+                        'responsibilities': 'Define product roadmap, gather requirements, work with engineering teams, analyze product metrics, conduct user research.',
+                        'benefits': 'Equity package, health insurance, unlimited PTO, professional development budget',
+                        'vacancies': 1,
+                        'is_featured': True,
+                        'company_index': 0
+                    },
+                    {
+                        'title': 'Marketing Specialist',
+                        'description': 'Join our marketing team to help grow our brand and reach new customers. You\'ll work on digital marketing campaigns and content creation.',
+                        'location': 'Remote',
+                        'job_type': 'full-time',
+                        'experience_required': '1-3',
+                        'salary': '$60,000 - $80,000',
+                        'skills_required': 'Digital Marketing, Content Creation, SEO, Social Media, Google Analytics',
+                        'requirements': 'Bachelor\'s degree in Marketing or related field. Experience with digital marketing tools. Creative mindset.',
+                        'responsibilities': 'Create marketing campaigns, manage social media, write content, analyze campaign performance, collaborate with design team.',
+                        'benefits': 'Remote work, health insurance, marketing tool subscriptions, flexible hours',
+                        'vacancies': 1,
+                        'is_featured': False,
+                        'company_index': 1
+                    },
+                    {
+                        'title': 'Backend Developer',
+                        'description': 'We need a skilled Backend Developer to build robust APIs and server-side applications. You\'ll work with modern technologies and scalable architectures.',
+                        'location': 'Austin, TX',
+                        'job_type': 'full-time',
+                        'experience_required': '1-3',
+                        'salary': '$85,000 - $110,000',
+                        'skills_required': 'Node.js, Python, MongoDB, PostgreSQL, REST APIs, GraphQL',
+                        'requirements': '2+ years of backend development experience. Strong knowledge of databases. Experience with API design.',
+                        'responsibilities': 'Develop server-side applications, design APIs, optimize database queries, ensure application security.',
+                        'benefits': 'Health coverage, 401k matching, learning budget, team outings',
+                        'vacancies': 2,
+                        'is_featured': False,
+                        'company_index': 2
+                    },
+                    {
+                        'title': 'Mobile App Developer',
+                        'description': 'Looking for a Mobile App Developer to create amazing mobile experiences. You\'ll work on both iOS and Android applications using modern frameworks.',
+                        'location': 'Seattle, WA',
+                        'job_type': 'contract',
+                        'experience_required': '1-3',
+                        'salary': '$70 - $90 per hour',
+                        'skills_required': 'React Native, Flutter, iOS, Android, JavaScript, Dart',
+                        'requirements': 'Experience with cross-platform mobile development. Published apps in app stores preferred. Strong UI/UX sense.',
+                        'responsibilities': 'Develop mobile applications, optimize app performance, work with designers, test on multiple devices.',
+                        'benefits': 'Flexible contract terms, remote work options, competitive hourly rate',
+                        'vacancies': 1,
+                        'is_featured': False,
+                        'company_index': 3
+                    },
+                    {
+                        'title': 'Cybersecurity Analyst',
+                        'description': 'Join our security team to protect our systems and data. You\'ll monitor threats, implement security measures, and respond to incidents.',
+                        'location': 'Boston, MA',
+                        'job_type': 'full-time',
+                        'experience_required': '3-5',
+                        'salary': '$95,000 - $125,000',
+                        'skills_required': 'Network Security, Incident Response, SIEM, Penetration Testing, Risk Assessment',
+                        'requirements': 'Bachelor\'s degree in Cybersecurity or related field. Security certifications preferred. Experience with security tools.',
+                        'responsibilities': 'Monitor security events, conduct risk assessments, implement security policies, respond to incidents.',
+                        'benefits': 'Security training budget, health insurance, certification reimbursement, flexible work',
+                        'vacancies': 1,
+                        'is_featured': False,
+                        'company_index': 4
+                    }
+                ]
+                
+                jobs_created = 0
+                for job_data in jobs_data:
+                    company = companies[job_data['company_index']]
+                    
+                    # Set application deadline (30 days from now)
+                    deadline = date.today() + timedelta(days=30)
+                    
+                    Job.objects.create(
+                        company=company,
+                        title=job_data['title'],
+                        company_name=company.company_name,
+                        description=job_data['description'],
+                        location=job_data['location'],
+                        job_type=job_data['job_type'],
+                        experience_required=job_data['experience_required'],
+                        salary=job_data['salary'],
+                        requirements=job_data['requirements'],
+                        skills_required=job_data['skills_required'],
+                        responsibilities=job_data['responsibilities'],
+                        benefits=job_data['benefits'],
+                        vacancies=job_data['vacancies'],
+                        application_deadline=deadline,
+                        is_active=True,
+                        is_featured=job_data['is_featured']
+                    )
+                    jobs_created += 1
+                
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'\n✅ Successfully created sample data!\n'
+                        f'📊 Summary:\n'
+                        f'  - {len(companies)} companies created\n'
+                        f'  - {jobs_created} job listings created\n'
+                        f'  - {sum(1 for job in jobs_data if job["is_featured"])} featured jobs\n'
+                        f'\n🎉 Your website now has sample job listings!'
+                    )
+                )
+                
+        except Exception as e:
+            self.stdout.write(
+                self.style.ERROR(f'❌ Error creating sample data: {str(e)}')
             )
-            if created:
-                created_count += 1
-                self.stdout.write(self.style.SUCCESS(f"✅ Created: {job.title} at {job.company_name}"))
-            else:
-                existing_count += 1
-                self.stdout.write(self.style.WARNING(f"⚠️ Already exists: {job.title} at {job.company_name}"))
-
-        self.stdout.write(f"\n{'='*60}")
-        self.stdout.write(self.style.SUCCESS(f"✅ Sample jobs processing complete!"))
-        self.stdout.write(f"{'='*60}")
-        self.stdout.write(f"Created: {created_count} new jobs")
-        self.stdout.write(f"Existing: {existing_count} jobs")
-        self.stdout.write(f"Total: {Job.objects.count()} jobs in database")
-        self.stdout.write(f"{'='*60}")
+            raise
