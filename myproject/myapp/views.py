@@ -58,14 +58,15 @@ def get_email_base_style():
     '''
 
 
-def send_email(to_email, subject, html_content, plain_content):
-    """Generic email sending function with improved error handling"""
+import threading
+
+def _send_email_thread(to_email, subject, html_content, plain_content):
+    """Actual email sending logic to run in a thread"""
     try:
-        print(f"📧 Sending email to: {to_email}")
-        
-        # Prevent crash if email settings are missing or invalid
+        from django.conf import settings
         if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
-            raise Exception("Email credentials not configured")
+            logger.warning(f"Email credentials missing. Skipping email to {to_email}")
+            return
 
         send_mail(
             subject=subject,
@@ -75,16 +76,14 @@ def send_email(to_email, subject, html_content, plain_content):
             html_message=html_content,
             fail_silently=False, 
         )
-        print(f"✅ Email sent successfully to {to_email}")
-        logger.info(f"Email sent successfully to {to_email}: {subject}")
-        return True
-        
-    except (Exception, SystemExit) as e:
-        error_msg = str(e)
-        print(f"❌ Email failed to {to_email}: {error_msg}")
-        logger.error(f"Failed to send email to {to_email}: {error_msg}")
-        
-        # Extract OTP for console display as fallback
+        logger.info(f"✅ Email sent successfully to {to_email}")
+    except Exception as e:
+        logger.error(f"❌ Failed to send email to {to_email}: {str(e)}")
+
+def send_email(to_email, subject, html_content, plain_content):
+    """Wrapper to send email in background thread"""
+    try:
+        # 1. Log OTP immediately for fallback/debugging
         otp_match = None
         if 'OTP' in plain_content:
             import re
@@ -92,12 +91,26 @@ def send_email(to_email, subject, html_content, plain_content):
             matches = re.findall(otp_pattern, plain_content)
             if matches:
                 otp_match = matches[0]
+        
+        if otp_match:
+            print(f"🔑 OTP CODE [PRE-SEND LOG]: {otp_match}")
+            logger.info(f"OTP for {to_email}: {otp_match}")
 
+        # 2. Start email in background thread
+        email_thread = threading.Thread(
+            target=_send_email_thread,
+            args=(to_email, subject, html_content, plain_content)
+        )
+        email_thread.start()
         
-        print(f"🔑 OTP CODE: {otp_match}" if otp_match else "No OTP found")
+        # 3. Return True immediately to prevent blocking
+        print(f"📧 Email task started for: {to_email}")
+        return True
         
-        # Return False but don't crash the application
-        return False
+    except Exception as e:
+        logger.error(f"Error initiating email thread: {str(e)}")
+        # Even if thread start fails, return True so user flow continues (OTP is logged)
+        return True
 
 
 def send_otp_email(email, otp, name="User"):
