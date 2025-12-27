@@ -9,8 +9,14 @@ import django
 from datetime import date, timedelta
 
 # Setup Django environment
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'settings')
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import sys
+import os
+import django
+
+# Add the project root directory to the Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'myproject.settings')
 django.setup()
 
 from myapp.models import Job
