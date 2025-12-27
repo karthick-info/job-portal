@@ -1195,51 +1195,51 @@ def register(request):
 @require_http_methods(["GET", "POST"])
 def RegisterUser(request):
     if request.method == "POST":
-        # Get form data
-        role = request.POST.get('role', '').lower().strip()
-        fname = request.POST.get('fname', '').strip()
-        lname = request.POST.get('lname', '').strip()
-        email = request.POST.get('email', '').strip().lower()
-        password = request.POST.get('password', '')
-        cpassword = request.POST.get('cpassword', '')
-
-        # Validation
-        errors = []
-        
-        # Check required fields
-        if not all([role, fname, lname, email, password, cpassword]):
-            errors.append("All fields are required")
-        
-        # Validate role
-        if role not in ['candidate', 'company']:
-            errors.append("Invalid role selected")
-        
-        # Validate email format
         try:
-            validate_email(email)
-        except ValidationError:
-            errors.append("Invalid email format")
-        
-        # Check password match
-        if password != cpassword:
-            errors.append("Passwords do not match")
-        
-        # Check password strength
-        if len(password) < 6:
-            errors.append("Password must be at least 6 characters long")
-        
-        # Check if user exists
-        if UserMaster.objects.filter(email=email).exists():
-            errors.append("User with this email already exists")
-        
-        # If there are errors, return to form
-        if errors:
-            return render(request, 'myapp/register.html', {
-                'msg': ". ".join(errors),
-                'form_data': request.POST
-            })
+            # Get form data
+            role = request.POST.get('role', '').lower().strip()
+            fname = request.POST.get('fname', '').strip()
+            lname = request.POST.get('lname', '').strip()
+            email = request.POST.get('email', '').strip().lower()
+            password = request.POST.get('password', '')
+            cpassword = request.POST.get('cpassword', '')
 
-        try:
+            # Validation
+            errors = []
+            
+            # Check required fields
+            if not all([role, fname, lname, email, password, cpassword]):
+                errors.append("All fields are required")
+            
+            # Validate role
+            if role not in ['candidate', 'company']:
+                errors.append("Invalid role selected")
+            
+            # Validate email format
+            try:
+                validate_email(email)
+            except ValidationError:
+                errors.append("Invalid email format")
+            
+            # Check password match
+            if password != cpassword:
+                errors.append("Passwords do not match")
+            
+            # Check password strength
+            if len(password) < 6:
+                errors.append("Password must be at least 6 characters long")
+            
+            # Check if user exists
+            if UserMaster.objects.filter(email=email).exists():
+                errors.append("User with this email already exists")
+            
+            # If there are errors, return to form
+            if errors:
+                return render(request, 'myapp/register.html', {
+                    'msg': ". ".join(errors),
+                    'form_data': request.POST
+                })
+
             with transaction.atomic():
                 # Generate OTP
                 otp = randint(10000, 99999)
@@ -1297,8 +1297,11 @@ def RegisterUser(request):
             
         except Exception as e:
             logger.error(f"Error in RegisterUser: {str(e)}")
+            # Return specific error message to the user
+            import traceback
+            error_details = str(e)
             return render(request, 'myapp/register.html', {
-                'msg': "An error occurred during registration. Please try again.",
+                'msg': f"System Error: {error_details}. Please try again.",
                 'form_data': request.POST
             })
 
