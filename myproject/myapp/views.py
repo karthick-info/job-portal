@@ -63,19 +63,23 @@ def send_email(to_email, subject, html_content, plain_content):
     try:
         print(f"📧 Sending email to: {to_email}")
         
+        # Prevent crash if email settings are missing or invalid
+        if not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
+            raise Exception("Email credentials not configured")
+
         send_mail(
             subject=subject,
             message=plain_content,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[to_email],
             html_message=html_content,
-            fail_silently=True,  # Changed to True to prevent crashes
+            fail_silently=False, 
         )
         print(f"✅ Email sent successfully to {to_email}")
         logger.info(f"Email sent successfully to {to_email}: {subject}")
         return True
         
-    except Exception as e:
+    except (Exception, SystemExit) as e:
         error_msg = str(e)
         print(f"❌ Email failed to {to_email}: {error_msg}")
         logger.error(f"Failed to send email to {to_email}: {error_msg}")
@@ -88,6 +92,7 @@ def send_email(to_email, subject, html_content, plain_content):
             matches = re.findall(otp_pattern, plain_content)
             if matches:
                 otp_match = matches[0]
+
         
         print(f"🔑 OTP CODE: {otp_match}" if otp_match else "No OTP found")
         
